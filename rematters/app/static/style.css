@@ -245,19 +245,19 @@
 
 .matter-label-wrap .card-actions-overlay {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  z-index: 3;
-  display: flex;
-  gap: 0.3rem;
+  top: 6px;
+  right: 6px;
+  z-index: 5;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.18s ease;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
 }
 
 .code-card.matter-sticker-card:hover .card-actions-overlay,
 .code-card.matter-sticker-card:focus-within .card-actions-overlay {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
 }
 
@@ -309,34 +309,57 @@
   background: var(--rm-danger-bg);
 }
 
-.code-card img.matter-label {
-  display: block;
+.matter-sticker {
   width: 100%;
-  height: auto;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 2px 16px rgba(15, 23, 42, 0.1);
 }
 
-.matter-label-empty {
+.matter-sticker-box {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 342px;
+  margin: 0 auto;
+  padding: 14px 16px 18px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  width: 100%;
-  border: 2px solid var(--rm-border);
-  border-radius: 14px;
-  background: #fff;
-  color: var(--rm-text-muted);
-  font-size: var(--rm-text-sm);
+  gap: 10px;
 }
 
-.matter-label-empty span {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--rm-text);
-  margin-bottom: 0.5rem;
+.matter-sticker-logo {
+  display: block;
+  width: min(200px, 88%);
+  height: auto;
+  margin: 0 auto;
+}
+
+.matter-sticker-qr {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+}
+
+.matter-sticker-pin {
+  margin: 2px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #000;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.matter-sticker-empty-msg {
+  margin: 0;
+  font-size: var(--rm-text-sm);
+  color: var(--rm-text-muted);
+  text-align: center;
 }
 
 .code-card-caption {

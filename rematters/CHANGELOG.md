@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.12 — 2026-05-25
+
+- Matter cards: HTML/CSS sticker (logo, QR, bind code) with black 8px border — no broken label.png
+- Action buttons hidden until card hover
+
 ## 0.1.11 — 2026-05-25
 
 - Release bump (same Matter sticker cards as 0.1.10; update via Supervisor)

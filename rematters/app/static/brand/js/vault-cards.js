@@ -1,5 +1,6 @@
 /**
  * Shared Matter sticker cards (Rematters Cloud + HA Ingress).
+ * Sticker is HTML/CSS (logo + qr.png + pin) — matches the physical Matter label.
  */
 (function (global) {
   const LABELS = { share: "Share", edit: "Edit", delete: "Delete" };
@@ -9,15 +10,56 @@
     return q.toUpperCase().startsWith("MT:");
   }
 
-  function hasLabelContent(code) {
-    return hasMtPayload(code) || String(code.manual_code || "").trim() !== "";
+  function displayManual(code) {
+    const manual = String(code.manual_code || "").trim();
+    if (!manual) return "";
+    const digits = manual.replace(/\D/g, "");
+    if (digits.length === 11) {
+      return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7, 11)}`;
+    }
+    return manual;
+  }
+
+  function buildStickerHtml(code, opts) {
+    const escapeHtml = opts.escapeHtml;
+    const apiPrefix = opts.qrApiPrefix || "/api";
+    const brandPrefix = opts.brandPrefix || "/brand";
+    const hasMt = hasMtPayload(code);
+    const pin = displayManual(code);
+
+    const logo = `<img class="matter-sticker-logo" src="${brandPrefix}/matter-wordmark.png" alt="matter" width="200" height="48" decoding="async" />`;
+
+    if (!hasMt && !pin) {
+      return `
+        <div class="matter-sticker matter-sticker--empty">
+          <div class="matter-sticker-box">
+            ${logo}
+            <p class="matter-sticker-empty-msg">No setup code yet</p>
+          </div>
+        </div>`;
+    }
+
+    const qrBlock = hasMt
+      ? `<img class="matter-sticker-qr" src="${apiPrefix}/codes/${code.id}/qr.png" alt="" width="220" height="220" loading="lazy" decoding="async" />`
+      : "";
+
+    const pinBlock = pin
+      ? `<p class="matter-sticker-pin">${escapeHtml(pin)}</p>`
+      : "";
+
+    return `
+      <div class="matter-sticker">
+        <div class="matter-sticker-box">
+          ${logo}
+          ${qrBlock}
+          ${pinBlock}
+        </div>
+      </div>`;
   }
 
   function buildCodeCardHtml(code, opts) {
     const escapeHtml = opts.escapeHtml;
     const iconsHref = opts.iconsHref || "/brand/icons.svg";
-    const apiPrefix = opts.qrApiPrefix || "/api";
-    const showLabel = hasLabelContent(code);
     const icons =
       global.RemattersVaultShareUi?.cardIconButtonsHtml({
         iconsHref,
@@ -27,14 +69,10 @@
         deleteLabel: LABELS.delete,
       }) || "";
 
-    const labelImg = showLabel
-      ? `<img class="matter-label" src="${apiPrefix}/codes/${code.id}/label.png" alt="" width="342" height="469" loading="lazy" decoding="async" />`
-      : `<div class="matter-label-empty"><span>matter</span><p>No setup code yet</p></div>`;
-
     return `
       <div class="matter-label-wrap">
-        <div class="card-actions-overlay" aria-hidden="false">${icons}</div>
-        ${labelImg}
+        <div class="card-actions-overlay">${icons}</div>
+        ${buildStickerHtml(code, opts)}
       </div>
       <p class="code-card-caption" title="${escapeHtml(code.name)}">${escapeHtml(code.name)}</p>
     `;
@@ -82,7 +120,7 @@
   global.RemattersVaultCards = {
     LABELS,
     hasMtPayload,
-    hasLabelContent,
+    displayManual,
     buildCodeCardHtml,
     wireCodeCard,
     categoryNameDefault,
