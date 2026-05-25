@@ -35,7 +35,7 @@ Automatic backups follow **Backup interval (hours)**; old files are pruned per *
 
 ```json
 {
-  "meta": { "version": 1, "exported_at": "ISO8601", "addon_version": "0.1.1" },
+  "meta": { "version": 1, "exported_at": "ISO8601", "addon_version": "0.1.3" },
   "categories": [
     { "id": "uuid", "name": "Living room", "color": "#6366f1", "sort_order": 0 }
   ],
@@ -68,6 +68,20 @@ All routes are relative to the Ingress base under `./api/`:
 | POST | `/backup` | Manual backup |
 | CRUD | `/categories`, `/codes` | Manage data |
 | POST | `/codes/{id}/sync-from-ha` | Pull from HA attribute |
+| GET | `/cloud/status` | Cloud sync configuration status |
+| POST | `/cloud/sync` | Merge vault with Rematters Cloud now |
+
+## Rematters Cloud (hybrid)
+
+1. Register at [rematters.casa](https://rematters.casa) → **Account** → **Generate HA sync token**.
+2. Add-on **Configuration**:
+   - `cloud_enabled`: **true**
+   - `cloud_url`: `https://rematters.casa`
+   - `cloud_token`: your `rm_…` token
+3. **Save** and **restart** the add-on (sync runs on startup and every 15 minutes).
+4. Optional: open Ingress → **Cloud sync** for an immediate merge.
+
+Sync is **bidirectional** (newest `updated_at` per item wins). The web vault does not push to Home Assistant by itself — the add-on pulls from and pushes to the cloud API.
 
 ## Security
 

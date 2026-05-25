@@ -22,12 +22,15 @@ def load_cloud_options() -> dict[str, Any]:
 
 
 def cloud_configured() -> bool:
+    """True when URL + token are set and cloud sync is not explicitly disabled."""
     opts = load_cloud_options()
-    return bool(
-        opts.get("cloud_enabled")
-        and (opts.get("cloud_url") or "").strip()
-        and (opts.get("cloud_token") or "").strip()
-    )
+    has_url = bool((opts.get("cloud_url") or "").strip())
+    has_token = bool((opts.get("cloud_token") or "").strip())
+    if not has_url or not has_token:
+        return False
+    if opts.get("cloud_enabled") is False:
+        return False
+    return True
 
 
 def _api_request(method: str, path: str, body: Optional[dict] = None) -> dict[str, Any]:
@@ -51,7 +54,15 @@ def _api_request(method: str, path: str, body: Optional[dict] = None) -> dict[st
     except HTTPError as e:
         detail = e.read().decode("utf-8", errors="replace")
         _LOGGER.error("Cloud API %s %s: %s %s", method, path, e.code, detail)
-        raise RuntimeError(f"Cloud API error {e.code}") from e
+        msg = f"Cloud API error {e.code}"
+        try:
+            body = json.loads(detail) if detail else {}
+            if isinstance(body, dict) and body.get("detail"):
+                msg = f"{msg}: {body['detail']}"
+        except json.JSONDecodeError:
+            if detail and len(detail) < 200:
+                msg = f"{msg}: {detail}"
+        raise RuntimeError(msg) from e
     except URLError as e:
         _LOGGER.error("Cloud unreachable: %s", e)
         raise RuntimeError("Cloud unreachable") from e
@@ -67,6 +78,17 @@ def push_vault(vault_dict: dict[str, Any], mode: str = "merge") -> dict[str, Any
         "/api/sync/vault",
         {"vault": vault_dict, "mode": mode},
     )
+
+
+def run_cloud_sync(storage) -> dict[str, Any]:
+    """Pull from cloud, merge with local vault, save locally, push merged result back."""
+    from models import Vault
+
+    vault = storage.load()
+    result = sync_bidirectional(vault.model_dump(mode="json"))
+    merged = result.get("vault") or result
+    storage.save(Vault.model_validate(merged))
+    return result
 
 
 def sync_bidirectional(local_vault: dict[str, Any]) -> dict[str, Any]:

@@ -27,7 +27,7 @@ from models import (
     MatterCodeUpdate,
     utc_now,
 )
-from cloud_sync import cloud_configured, load_cloud_options, sync_bidirectional
+from cloud_sync import cloud_configured, load_cloud_options, run_cloud_sync
 from models import Vault
 from storage import VaultStorage
 
@@ -100,12 +100,37 @@ async def lifespan(app: FastAPI):
         scheduler.start()
         _LOGGER.info("Google Drive backup every %s hour(s)", hours)
 
+    def scheduled_cloud_sync():
+        if not cloud_configured():
+            return
+        try:
+            result = run_cloud_sync(storage)
+            _LOGGER.info("Cloud sync OK (revision %s)", result.get("revision"))
+        except Exception:
+            _LOGGER.exception("Scheduled cloud sync failed")
+
+    if cloud_configured():
+        try:
+            scheduled_cloud_sync()
+        except Exception:
+            _LOGGER.exception("Initial cloud sync on startup failed")
+        scheduler.add_job(
+            scheduled_cloud_sync,
+            "interval",
+            minutes=15,
+            id="cloud_sync",
+            replace_existing=True,
+        )
+        if not scheduler.running:
+            scheduler.start()
+        _LOGGER.info("Rematters Cloud sync on startup and every 15 minutes")
+
     yield
     if scheduler.running:
         scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="Rematters", version="0.1.1", lifespan=lifespan)
+app = FastAPI(title="Rematters", version="0.1.3", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -317,23 +342,36 @@ async def sync_code_from_ha(code_id: str):
 @app.get("/api/cloud/status")
 async def cloud_status():
     opts = load_cloud_options()
+    has_token = bool((opts.get("cloud_token") or "").strip())
+    has_url = bool((opts.get("cloud_url") or "").strip())
+    enabled_flag = opts.get("cloud_enabled")
     return {
         "configured": cloud_configured(),
         "url": (opts.get("cloud_url") or "").strip() or None,
+        "has_token": has_token,
+        "cloud_enabled": enabled_flag,
+        "hint": None
+        if cloud_configured()
+        else (
+            "Set cloud_url and cloud_token in add-on configuration."
+            if not (has_url and has_token)
+            else "Enable cloud_enabled in add-on configuration."
+            if enabled_flag is False
+            else None
+        ),
     }
 
 
 @app.post("/api/cloud/sync")
 async def cloud_sync_now():
     if not cloud_configured():
-        raise HTTPException(400, "Enable cloud sync in add-on options (cloud_url + cloud_token)")
-    vault = storage.load()
+        status = await cloud_status()
+        detail = status.get("hint") or "Configure Rematters Cloud in add-on options"
+        raise HTTPException(400, detail)
     try:
-        result = sync_bidirectional(vault.model_dump(mode="json"))
+        result = run_cloud_sync(storage)
     except RuntimeError as e:
         raise HTTPException(502, str(e)) from e
-    merged = result.get("vault") or result
-    storage.save(Vault.model_validate(merged))
     return {"ok": True, "revision": result.get("revision")}
 
 
@@ -348,7 +386,7 @@ async def index():
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.isfile(index_path):
         return FileResponse(index_path)
-    return JSONResponse({"service": "rematters", "version": "0.1.1"})
+    return JSONResponse({"service": "rematters", "version": "0.1.3"})
 
 
 if __name__ == "__main__":

@@ -255,13 +255,20 @@ function bindUi() {
 
   const btnCloud = document.getElementById("btn-cloud-sync");
   if (btnCloud) {
+    api("/cloud/status")
+      .then((s) => {
+        if (!s.configured && s.hint) {
+          btnCloud.title = s.hint;
+        }
+      })
+      .catch(() => {});
     btnCloud.onclick = async () => {
       try {
         const r = await api("/cloud/sync", { method: "POST" });
         alert(r.ok ? t("alert.cloud_sync_ok") : t("alert.cloud_sync_fail"));
         await loadVault();
       } catch (err) {
-        alert(err.message);
+        alert(err.message || t("alert.cloud_sync_fail"));
       }
     };
   }

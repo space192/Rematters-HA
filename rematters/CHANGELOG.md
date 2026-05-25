@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.3 — 2026-05-25
+
+- Cloud sync: run on add-on startup and every 15 minutes (not only manual button)
+- `cloud_enabled` defaults to true when using hybrid mode
+- Clearer cloud API errors and `/cloud/status` hints in Ingress UI
+- Documentation for Rematters Cloud hybrid setup
+
+## 0.1.2 — 2026-05-25
+
+- Optional Rematters Cloud hybrid sync (`cloud_url`, `cloud_token`)
+- Shared brand UI and light/dark theme toggle in Ingress
+
 ## 0.1.1 — 2026-05-26
 
 - Fix AppArmor profile (add-on install on Home Assistant OS)
