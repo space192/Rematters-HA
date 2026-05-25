@@ -1,9 +1,25 @@
-# Rematters-HA
+<p align="center">
+  <img src="rematters/logo.svg" alt="Rematters" width="88" height="88" />
+</p>
 
-[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Add--on-41BDF5?style=flat-square&logo=home-assistant)](https://www.home-assistant.io/addons/)
-[![GitHub](https://img.shields.io/github/stars/Rematters/Rematters-HA?style=flat-square)](https://github.com/Rematters/Rematters-HA)
+<h1 align="center">Rematters</h1>
 
-**Rematters** — Home Assistant add-on. Your online Matter code vault: store, categorize, export, and back up pairing codes.
+<p align="center"><strong>Your Online Matter Code Vault</strong> for Home Assistant</p>
+
+<p align="center">
+  <a href="https://github.com/Rematters/Rematters-HA">GitHub</a> ·
+  <a href="https://rematters.casa">rematters.casa</a> ·
+  <a href="https://viewer.rematters.casa">Viewer</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Home%20Assistant-Add--on-41BDF5?style=flat-square&logo=home-assistant" alt="Home Assistant Add-on" />
+  <img src="https://img.shields.io/github/stars/Rematters/Rematters-HA?style=flat-square" alt="GitHub stars" />
+</p>
+
+---
+
+**Rematters** — Home Assistant add-on. Store, categorize, export, and back up Matter pairing codes.
 
 | | |
 |---|---|
@@ -28,9 +44,10 @@ Then go to **Settings → Apps**, install **Rematters**, start it, and open **Op
 Rematters-HA/                 ← this repo (HA Apps repository root)
 ├── repository.yaml
 └── rematters/                ← add-on (slug: rematters)
+    ├── icon.png              ← add-on store icon (512×512)
+    ├── logo.png              ← add-on logo (128×128)
+    ├── logo.svg
     ├── config.yaml
-    ├── Dockerfile
-    ├── app/
     └── …
 ```
 

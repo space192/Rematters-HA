@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.svg" alt="Rematters" width="64" height="64" /></p>
+
 # Rematters add-on (`rematters`)
 
 | | |
