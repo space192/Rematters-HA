@@ -119,7 +119,7 @@ function renderCodes() {
         escapeHtml,
         categoryName,
         iconsHref: "./static/brand/icons.svg",
-        brandPrefix: "./static/brand",
+        assetsPrefix: "./static/assets",
         qrApiPrefix: "./api",
       });
       Cards.wireCodeCard(card, code, {

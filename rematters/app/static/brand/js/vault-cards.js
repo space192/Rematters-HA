@@ -1,13 +1,13 @@
 /**
  * Shared Matter sticker cards (Rematters Cloud + HA Ingress).
- * Sticker is HTML/CSS (logo + qr.png + pin) — matches the physical Matter label.
+ * Sticker is HTML/CSS (official matter_logo.svg + qr.png + pin).
  */
 (function (global) {
   const LABELS = { share: "Share", edit: "Edit", delete: "Delete" };
 
-  /** Matter connectivity mark (CSA-style symbol, inline for offline use). */
-  const MATTER_MARK_PATH =
-    "M128 18.3c-5.1 0-9.7 2.9-11.9 7.4L81 120.4c-2.2 4.5-6.8 7.4-11.9 7.4-10.2 0-18.5 8.3-18.5 18.5 0 3.9 1.2 7.6 3.2 10.7l-8.6 43.2c-1.8 9.1 4.2 17.8 13.3 19.6 1.4.3 2.9.4 4.3.4 10.8 0 19.7-8.4 20.9-19.1l2.5-24.7c.2-2.5 2.3-4.5 4.8-4.5s4.6 2 4.8 4.5l2.5 24.7c1.2 10.8 10.1 19.1 20.9 19.1 1.4 0 2.9-.1 4.3-.4 9.1-1.8 15.1-10.5 13.3-19.6l-8.6-43.2c2-3.1 3.2-6.8 3.2-10.7 0-10.2-8.3-18.5-18.5-18.5-5.1 0-9.7-2.9-11.9-7.4L139.9 25.7c-2.2-4.5-6.8-7.4-11.9-7.4h-.2z";
+  /** Official Matter wordmark aspect ratio (viewBox 338.667 × 72.644). */
+  const MATTER_LOGO_WIDTH = 200;
+  const MATTER_LOGO_HEIGHT = 43;
 
   function hasMtPayload(code) {
     const q = String(code.qr_payload || "").trim();
@@ -24,12 +24,10 @@
     return manual;
   }
 
-  function matterBrandHtml() {
+  function matterBrandHtml(opts) {
+    const assetsPrefix = opts.assetsPrefix || "/assets";
     return `<div class="matter-sticker-brand" aria-label="matter">
-      <svg class="matter-sticker-mark" viewBox="0 0 256 256" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <path fill="currentColor" d="${MATTER_MARK_PATH}"/>
-      </svg>
-      <span class="matter-sticker-word">matter</span>
+      <img class="matter-sticker-logo" src="${assetsPrefix}/matter_logo.svg" alt="" width="${MATTER_LOGO_WIDTH}" height="${MATTER_LOGO_HEIGHT}" decoding="async" />
     </div>`;
   }
 
@@ -55,7 +53,7 @@
     const escapeHtml = opts.escapeHtml;
     const hasMt = hasMtPayload(code);
     const pin = displayManual(code);
-    const brand = matterBrandHtml();
+    const brand = matterBrandHtml(opts);
 
     if (!hasMt && !pin) {
       return `

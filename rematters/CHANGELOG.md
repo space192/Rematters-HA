@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.15 (2026-05-25)
+
+- Matter cards use official `matter_logo.svg` wordmark (all platforms)
+
 ## 0.1.14 (2026-05-25)
 
 - Matter sticker: fixed logo (inline SVG), QR placeholder when no MT payload, equal card heights

@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 from matter_payload import display_manual, qr_encode_payload
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-WORDMARK = os.path.join(STATIC_DIR, "brand", "matter-wordmark.png")
+WORDMARK = os.path.join(STATIC_DIR, "assets", "matter_logo.png")
 
 LABEL_W = 342
 LABEL_H_WITH_QR = 469
