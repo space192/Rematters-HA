@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rematters</title>
+  <link rel="stylesheet" href="./static/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div>
+      <h1>Rematters</h1>
+      <p class="subtitle">Onthoud en categoriseer Matter binding codes</p>
+    </div>
+    <div class="header-actions">
+      <button type="button" id="btn-export" class="btn secondary">Exporteren</button>
+      <label class="btn secondary file-label">
+        Importeren
+        <input type="file" id="import-file" accept="application/json,.json" hidden />
+      </label>
+      <button type="button" id="btn-backup" class="btn secondary">Backup nu</button>
+      <button type="button" id="btn-add-code" class="btn primary">+ Code</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h2>Categorieën</h2>
+        <button type="button" id="btn-add-category" class="btn icon" title="Categorie toevoegen">+</button>
+      </div>
+      <ul id="category-list" class="category-list"></ul>
+      <button type="button" id="filter-all" class="filter-all active">Alle codes</button>
+      <div id="backup-status" class="backup-status"></div>
+    </aside>
+
+    <section class="content">
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Zoek op naam, type of code…" />
+      </div>
+      <div id="codes-grid" class="codes-grid"></div>
+      <p id="empty-state" class="empty hidden">Nog geen Matter codes. Klik op + Code om te beginnen.</p>
+    </section>
+  </main>
+
+  <dialog id="code-dialog">
+    <form id="code-form" method="dialog">
+      <h3 id="code-dialog-title">Matter code</h3>
+      <input type="hidden" id="code-id" />
+      <label>Naam <input type="text" id="code-name" required /></label>
+      <label>Apparaattype <input type="text" id="code-device-type" placeholder="bijv. lamp, schakelaar" /></label>
+      <label>Categorie
+        <select id="code-category"></select>
+      </label>
+      <label>Manual code (11 cijfers)
+        <input type="text" id="code-manual" placeholder="1234-567-8901" />
+      </label>
+      <label>QR payload (MT:…)
+        <textarea id="code-qr" rows="3" placeholder="MT:Y.K90…"></textarea>
+      </label>
+      <label>Notities <textarea id="code-notes" rows="2"></textarea></label>
+      <fieldset class="ha-link">
+        <legend>Home Assistant koppeling (optioneel)</legend>
+        <label>Entity ID <input type="text" id="code-ha-entity" placeholder="light.woonkamer" /></label>
+        <label>Attribuut <input type="text" id="code-ha-attr" placeholder="matter_setup_code" /></label>
+        <button type="button" id="btn-sync-ha" class="btn secondary">Ophalen uit HA</button>
+      </fieldset>
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" data-close>Annuleren</button>
+        <button type="submit" class="btn primary">Opslaan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="category-dialog">
+    <form id="category-form" method="dialog">
+      <h3 id="category-dialog-title">Categorie</h3>
+      <input type="hidden" id="category-id" />
+      <label>Naam <input type="text" id="category-name" required /></label>
+      <label>Kleur <input type="color" id="category-color" value="#6366f1" /></label>
+      <div class="dialog-actions">
+        <button type="button" class="btn secondary" data-close>Annuleren</button>
+        <button type="submit" class="btn primary">Opslaan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="./static/app.js"></script>
+</body>
+</html>

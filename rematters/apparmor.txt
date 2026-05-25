@@ -1,0 +1,13 @@
+#include <tunables/global>
+
+profile rematters flags=(attach_disconnected,mediate_deleted) {
+  #include <base>
+
+  capability,
+  file,
+  network,
+  umount,
+  signal,
+  dbus,
+  unix,
+}

@@ -1,0 +1,22 @@
+configuration:
+  gdrive_enabled:
+    name: Google Drive backup
+    description: Upload automatisch vault JSON-backups naar Google Drive.
+  gdrive_folder_id:
+    name: Google Drive map-ID
+    description: ID van de doelmap voor backups (maak eerst een aparte map aan).
+  gdrive_client_id:
+    name: OAuth Client ID
+    description: Google Cloud OAuth 2.0 client ID voor de Drive API.
+  gdrive_client_secret:
+    name: OAuth Client Secret
+    description: Google Cloud OAuth 2.0 client secret.
+  gdrive_refresh_token:
+    name: OAuth Refresh Token
+    description: Langlopend refresh token met scope drive.file.
+  backup_interval_hours:
+    name: Backup-interval (uren)
+    description: Hoe vaak er een backup wordt geüpload wanneer Drive aan staat.
+  backup_keep_count:
+    name: Backups bewaren
+    description: Maximum aantal backup-bestanden in Google Drive.
