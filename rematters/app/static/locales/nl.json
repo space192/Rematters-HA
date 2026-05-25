@@ -3,6 +3,7 @@
   "action.export": "Exporteren",
   "action.import": "Importeren",
   "action.backup_now": "Backup nu",
+  "action.cloud_sync": "Cloud sync",
   "action.add_code": "+ Code",
   "action.edit": "Bewerken",
   "action.delete": "Verwijderen",
@@ -40,6 +41,8 @@
   "alert.backup_gdrive_ok": "Backup naar Google Drive gelukt.",
   "alert.backup_local_ok": "Lokale backup gemaakt.",
   "alert.save_before_sync": "Sla de code eerst op voordat je synchroniseert uit HA.",
+  "alert.cloud_sync_ok": "Kluis gesynchroniseerd met Rematters Cloud.",
+  "alert.cloud_sync_fail": "Cloud sync mislukt. Controleer add-on opties.",
   "backup.gdrive_active": "Google Drive backup actief (elke {hours}u)",
   "backup.gdrive_inactive": "Google Drive niet geconfigureerd — configureer via Instellingen → Apps → Rematters.",
   "lang.label": "Taal"

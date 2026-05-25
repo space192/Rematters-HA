@@ -99,8 +99,8 @@ function renderCodes() {
       ${code.ha_link?.entity_id ? `<p class="code-meta">HA: ${escapeHtml(code.ha_link.entity_id)}.${escapeHtml(code.ha_link.attribute || "")}</p>` : ""}
       ${hasQr ? `<img class="qr" src="./api/codes/${code.id}/qr.png" alt="QR" />` : ""}
       <div class="card-actions">
-        <button type="button" class="btn secondary" data-edit>${escapeHtml(t("action.edit"))}</button>
-        <button type="button" class="btn danger" data-delete>${escapeHtml(t("action.delete"))}</button>
+        <button type="button" class="rm-btn rm-btn-secondary" data-edit>${escapeHtml(t("action.edit"))}</button>
+        <button type="button" class="rm-btn rm-btn-danger" data-delete>${escapeHtml(t("action.delete"))}</button>
       </div>
     `;
     card.querySelector("[data-edit]").onclick = () => openCodeDialog(code);
@@ -252,6 +252,19 @@ function bindUi() {
     e.target.value = "";
     await loadVault();
   };
+
+  const btnCloud = document.getElementById("btn-cloud-sync");
+  if (btnCloud) {
+    btnCloud.onclick = async () => {
+      try {
+        const r = await api("/cloud/sync", { method: "POST" });
+        alert(r.ok ? t("alert.cloud_sync_ok") : t("alert.cloud_sync_fail"));
+        await loadVault();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+  }
 
   document.getElementById("btn-backup").onclick = async () => {
     const r = await api("/backup", { method: "POST" });

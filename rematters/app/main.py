@@ -27,6 +27,8 @@ from models import (
     MatterCodeUpdate,
     utc_now,
 )
+from cloud_sync import cloud_configured, load_cloud_options, sync_bidirectional
+from models import Vault
 from storage import VaultStorage
 
 logging.basicConfig(level=logging.INFO)
@@ -307,6 +309,32 @@ async def sync_code_from_ha(code_id: str):
     code.updated_at = utc_now()
     storage.save(vault)
     return code
+
+
+# --- Cloud sync (optional hybrid) ---
+
+
+@app.get("/api/cloud/status")
+async def cloud_status():
+    opts = load_cloud_options()
+    return {
+        "configured": cloud_configured(),
+        "url": (opts.get("cloud_url") or "").strip() or None,
+    }
+
+
+@app.post("/api/cloud/sync")
+async def cloud_sync_now():
+    if not cloud_configured():
+        raise HTTPException(400, "Enable cloud sync in add-on options (cloud_url + cloud_token)")
+    vault = storage.load()
+    try:
+        result = sync_bidirectional(vault.model_dump(mode="json"))
+    except RuntimeError as e:
+        raise HTTPException(502, str(e)) from e
+    merged = result.get("vault") or result
+    storage.save(Vault.model_validate(merged))
+    return {"ok": True, "revision": result.get("revision")}
 
 
 # --- Static UI (relative paths for ingress) ---

@@ -1,5 +1,5 @@
 name: Rematters
-version: "0.1.1"
+version: "0.1.2"
 slug: rematters
 description: Store and organize Matter pairing codes and QR payloads. Export JSON and back up to Google Drive.
 url: https://github.com/Rematters/Rematters-HA
@@ -32,6 +32,9 @@ options:
   gdrive_refresh_token: ""
   backup_interval_hours: 24
   backup_keep_count: 10
+  cloud_enabled: false
+  cloud_url: "https://rematters.casa"
+  cloud_token: ""
 schema:
   gdrive_enabled: bool
   gdrive_folder_id: str?
@@ -40,3 +43,6 @@ schema:
   gdrive_refresh_token: password?
   backup_interval_hours: int(1,168)?
   backup_keep_count: int(1,100)?
+  cloud_enabled: bool
+  cloud_url: url?
+  cloud_token: password?

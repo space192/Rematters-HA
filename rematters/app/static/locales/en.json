@@ -3,6 +3,7 @@
   "action.export": "Export",
   "action.import": "Import",
   "action.backup_now": "Backup now",
+  "action.cloud_sync": "Cloud sync",
   "action.add_code": "+ Code",
   "action.edit": "Edit",
   "action.delete": "Delete",
@@ -40,6 +41,8 @@
   "alert.backup_gdrive_ok": "Backup uploaded to Google Drive.",
   "alert.backup_local_ok": "Local backup created.",
   "alert.save_before_sync": "Save the code before syncing from Home Assistant.",
+  "alert.cloud_sync_ok": "Vault synced with Rematters Cloud.",
+  "alert.cloud_sync_fail": "Cloud sync failed. Check add-on options.",
   "backup.gdrive_active": "Google Drive backup active (every {hours}h)",
   "backup.gdrive_inactive": "Google Drive not configured — configure under Settings → Apps → Rematters.",
   "lang.label": "Language"
