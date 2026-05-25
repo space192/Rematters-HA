@@ -13,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./static/brand/css/tokens.css" />
   <link rel="stylesheet" href="./static/brand/css/components.css" />
-  <link rel="stylesheet" href="./static/style.css?v=20260531" />
+  <link rel="stylesheet" href="./static/style.css?v=20260601" />
 </head>
 <body>
   <header class="header">
@@ -173,6 +173,10 @@
       <input type="hidden" id="category-id" />
       <label><span data-i18n="code.name">Name</span> <input type="text" id="category-name" required /></label>
       <label><span data-i18n="categories.color">Color</span> <input type="color" id="category-color" value="#6366f1" /></label>
+      <label><span data-i18n="categories.icon">Icon</span>
+        <input type="hidden" id="category-icon" value="folder" />
+        <div id="category-icon-picker" class="category-icon-picker-host"></div>
+      </label>
       <div class="dialog-actions">
         <button type="button" class="rm-btn rm-btn-secondary" data-close data-i18n="action.cancel">Cancel</button>
         <button type="submit" class="rm-btn rm-btn-primary" data-i18n="action.save">Save</button>
@@ -184,7 +188,8 @@
   <script src="./static/brand/js/matter-scan.js"></script>
   <script src="./static/brand/js/matter-scanner.js"></script>
   <script src="./static/brand/js/vault-scan-ui.js"></script>
-  <script src="./static/brand/js/vault-cards.js?v=20260531"></script>
+  <script src="./static/brand/js/category-icons.js?v=20260601"></script>
+  <script src="./static/brand/js/vault-cards.js?v=20260601"></script>
   <script src="./static/brand/js/vault-share-ui.js"></script>
   <script src="./static/app.js"></script>
 </body>

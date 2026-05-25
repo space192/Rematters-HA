@@ -19,6 +19,7 @@
   "categories.dialog_new": "New category",
   "categories.dialog_edit": "Edit category",
   "categories.color": "Color",
+  "categories.icon": "Icon",
   "search.placeholder": "Search by name, type, or code…",
   "empty.no_codes": "No Matter codes yet. Click + Code to get started.",
   "code.dialog_new": "New Matter code",

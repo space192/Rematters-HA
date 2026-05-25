@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from category_icons import normalize as normalize_category_icon
 
 
 def utc_now() -> str:
@@ -18,7 +20,13 @@ class Category(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     name: str
     color: str = "#6366f1"
+    icon: str = "folder"
     sort_order: int = 0
+
+    @field_validator("icon")
+    @classmethod
+    def _icon(cls, value: str) -> str:
+        return normalize_category_icon(value)
 
 
 class HaLink(BaseModel):
@@ -54,13 +62,25 @@ class Vault(BaseModel):
 class CategoryCreate(BaseModel):
     name: str
     color: str = "#6366f1"
+    icon: str = "folder"
     sort_order: int = 0
+
+    @field_validator("icon")
+    @classmethod
+    def _icon(cls, value: str) -> str:
+        return normalize_category_icon(value)
 
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     color: Optional[str] = None
+    icon: Optional[str] = None
     sort_order: Optional[int] = None
+
+    @field_validator("icon")
+    @classmethod
+    def _icon(cls, value: Optional[str]) -> Optional[str]:
+        return normalize_category_icon(value) if value is not None else value
 
 
 class MatterCodeCreate(BaseModel):

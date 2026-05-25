@@ -8,6 +8,22 @@ let vault = { categories: [], codes: [] };
 let activeCategoryId = null;
 let cloudShareAvailable = false;
 let shareUi = null;
+let categoryIconPicker = null;
+
+const BRAND_PREFIX = "./static/brand";
+
+function ensureCategoryIconPicker() {
+  if (categoryIconPicker) return categoryIconPicker;
+  const Icons = window.RemattersCategoryIcons;
+  const host = document.getElementById("category-icon-picker");
+  const input = document.getElementById("category-icon");
+  if (!Icons || !host || !input) return null;
+  categoryIconPicker = Icons.mountPicker(host, {
+    brandPrefix: BRAND_PREFIX,
+    hiddenInput: input,
+  });
+  return categoryIconPicker;
+}
 
 async function api(path, options = {}) {
   const res = await fetch(`${API}${path}`, {
@@ -69,7 +85,10 @@ function renderCategories() {
     btn.type = "button";
     btn.className =
       "category-btn" + (activeCategoryId === cat.id ? " active" : "");
-    btn.innerHTML = `<span class="category-dot" style="background:${cat.color}"></span>${escapeHtml(cat.name)}`;
+    const mark = window.RemattersCategoryIcons
+      ? window.RemattersCategoryIcons.markMarkup(cat, BRAND_PREFIX)
+      : `<span class="category-dot" style="background:${cat.color}"></span>`;
+    btn.innerHTML = `${mark}${escapeHtml(cat.name)}`;
     btn.onclick = () => {
       activeCategoryId = cat.id;
       document.getElementById("filter-all").classList.remove("active");
@@ -166,6 +185,9 @@ function openCategoryDialog(cat = null) {
   document.getElementById("category-id").value = cat?.id || "";
   document.getElementById("category-name").value = cat?.name || "";
   document.getElementById("category-color").value = cat?.color || "#6366f1";
+  document.getElementById("category-icon").value =
+    cat?.icon || window.RemattersCategoryIcons?.DEFAULT_ICON || "folder";
+  ensureCategoryIconPicker()?.setValue(cat?.icon || "folder");
   dlg.showModal();
 }
 
@@ -227,6 +249,7 @@ async function saveCategory(e) {
   const body = {
     name: document.getElementById("category-name").value.trim(),
     color: document.getElementById("category-color").value,
+    icon: document.getElementById("category-icon").value,
   };
   if (id) {
     await api(`/categories/${id}`, { method: "PUT", body: JSON.stringify(body) });
@@ -263,6 +286,7 @@ async function loadBackupStatus() {
 }
 
 function bindUi() {
+  ensureCategoryIconPicker();
   document.getElementById("btn-add-code").onclick = () => openCodeDialog();
   document.getElementById("btn-add-category").onclick = () => openCategoryDialog();
   document.getElementById("code-form").onsubmit = saveCode;

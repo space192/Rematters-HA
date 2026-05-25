@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.13 — 2026-05-25
+
+- Category icons (Lucide, bundled offline) next to name and color in sidebar and editor
+- Icon picker in category dialog; syncs with Rematters Cloud
+
 ## 0.1.12 — 2026-05-25
 
 - Matter cards: HTML/CSS sticker (logo, QR, bind code) with black 8px border — no broken label.png
