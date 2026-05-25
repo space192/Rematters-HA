@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,81 +10,95 @@
   <header class="header">
     <div>
       <h1>Rematters</h1>
-      <p class="subtitle">Onthoud en categoriseer Matter binding codes</p>
+      <p class="subtitle" data-i18n="app.subtitle">Store and organize Matter pairing codes</p>
     </div>
     <div class="header-actions">
-      <button type="button" id="btn-export" class="btn secondary">Exporteren</button>
+      <label class="locale-label">
+        <span data-i18n="lang.label">Language</span>
+        <select id="locale-select" aria-label="Language">
+          <option value="en">English</option>
+          <option value="nl">Nederlands</option>
+        </select>
+      </label>
+      <button type="button" id="btn-export" class="btn secondary" data-i18n="action.export">Export</button>
       <label class="btn secondary file-label">
-        Importeren
+        <span data-i18n="action.import">Import</span>
         <input type="file" id="import-file" accept="application/json,.json" hidden />
       </label>
-      <button type="button" id="btn-backup" class="btn secondary">Backup nu</button>
-      <button type="button" id="btn-add-code" class="btn primary">+ Code</button>
+      <button type="button" id="btn-backup" class="btn secondary" data-i18n="action.backup_now">Backup now</button>
+      <button type="button" id="btn-add-code" class="btn primary" data-i18n="action.add_code">+ Code</button>
     </div>
   </header>
 
   <main class="layout">
     <aside class="sidebar">
       <div class="sidebar-head">
-        <h2>Categorieën</h2>
-        <button type="button" id="btn-add-category" class="btn icon" title="Categorie toevoegen">+</button>
+        <h2 data-i18n="categories.title">Categories</h2>
+        <button type="button" id="btn-add-category" class="btn icon" data-i18n-title="categories.add_title" title="Add category">+</button>
       </div>
       <ul id="category-list" class="category-list"></ul>
-      <button type="button" id="filter-all" class="filter-all active">Alle codes</button>
+      <button type="button" id="filter-all" class="filter-all active" data-i18n="categories.filter_all">All codes</button>
       <div id="backup-status" class="backup-status"></div>
     </aside>
 
     <section class="content">
       <div class="toolbar">
-        <input type="search" id="search" placeholder="Zoek op naam, type of code…" />
+        <input type="search" id="search" data-i18n-placeholder="search.placeholder" placeholder="Search by name, type, or code…" />
       </div>
       <div id="codes-grid" class="codes-grid"></div>
-      <p id="empty-state" class="empty hidden">Nog geen Matter codes. Klik op + Code om te beginnen.</p>
+      <p id="empty-state" class="empty hidden" data-i18n="empty.no_codes">No Matter codes yet. Click + Code to get started.</p>
     </section>
   </main>
 
   <dialog id="code-dialog">
     <form id="code-form" method="dialog">
-      <h3 id="code-dialog-title">Matter code</h3>
+      <h3 id="code-dialog-title" data-i18n="code.dialog_new">New Matter code</h3>
       <input type="hidden" id="code-id" />
-      <label>Naam <input type="text" id="code-name" required /></label>
-      <label>Apparaattype <input type="text" id="code-device-type" placeholder="bijv. lamp, schakelaar" /></label>
-      <label>Categorie
+      <label><span data-i18n="code.name">Name</span> <input type="text" id="code-name" required /></label>
+      <label><span data-i18n="code.device_type">Device type</span>
+        <input type="text" id="code-device-type" data-i18n-placeholder="code.device_type_placeholder" placeholder="e.g. light, switch" />
+      </label>
+      <label><span data-i18n="code.category">Category</span>
         <select id="code-category"></select>
       </label>
-      <label>Manual code (11 cijfers)
-        <input type="text" id="code-manual" placeholder="1234-567-8901" />
+      <label><span data-i18n="code.manual">Manual code (11 digits)</span>
+        <input type="text" id="code-manual" data-i18n-placeholder="code.manual_placeholder" placeholder="1234-567-8901" />
       </label>
-      <label>QR payload (MT:…)
-        <textarea id="code-qr" rows="3" placeholder="MT:Y.K90…"></textarea>
+      <label><span data-i18n="code.qr">QR payload (MT:…)</span>
+        <textarea id="code-qr" rows="3" data-i18n-placeholder="code.qr_placeholder" placeholder="MT:Y.K90…"></textarea>
       </label>
-      <label>Notities <textarea id="code-notes" rows="2"></textarea></label>
+      <label><span data-i18n="code.notes">Notes</span> <textarea id="code-notes" rows="2"></textarea></label>
       <fieldset class="ha-link">
-        <legend>Home Assistant koppeling (optioneel)</legend>
-        <label>Entity ID <input type="text" id="code-ha-entity" placeholder="light.woonkamer" /></label>
-        <label>Attribuut <input type="text" id="code-ha-attr" placeholder="matter_setup_code" /></label>
-        <button type="button" id="btn-sync-ha" class="btn secondary">Ophalen uit HA</button>
+        <legend data-i18n="code.ha_link">Home Assistant link (optional)</legend>
+        <label><span data-i18n="code.entity_id">Entity ID</span>
+          <input type="text" id="code-ha-entity" data-i18n-placeholder="code.entity_placeholder" placeholder="light.living_room" />
+        </label>
+        <label><span data-i18n="code.attribute">Attribute</span>
+          <input type="text" id="code-ha-attr" data-i18n-placeholder="code.attribute_placeholder" placeholder="matter_setup_code" />
+        </label>
+        <button type="button" id="btn-sync-ha" class="btn secondary" data-i18n="action.sync_from_ha">Pull from HA</button>
       </fieldset>
       <div class="dialog-actions">
-        <button type="button" class="btn secondary" data-close>Annuleren</button>
-        <button type="submit" class="btn primary">Opslaan</button>
+        <button type="button" class="btn secondary" data-close data-i18n="action.cancel">Cancel</button>
+        <button type="submit" class="btn primary" data-i18n="action.save">Save</button>
       </div>
     </form>
   </dialog>
 
   <dialog id="category-dialog">
     <form id="category-form" method="dialog">
-      <h3 id="category-dialog-title">Categorie</h3>
+      <h3 id="category-dialog-title" data-i18n="categories.dialog_new">New category</h3>
       <input type="hidden" id="category-id" />
-      <label>Naam <input type="text" id="category-name" required /></label>
-      <label>Kleur <input type="color" id="category-color" value="#6366f1" /></label>
+      <label><span data-i18n="code.name">Name</span> <input type="text" id="category-name" required /></label>
+      <label><span data-i18n="categories.color">Color</span> <input type="color" id="category-color" value="#6366f1" /></label>
       <div class="dialog-actions">
-        <button type="button" class="btn secondary" data-close>Annuleren</button>
-        <button type="submit" class="btn primary">Opslaan</button>
+        <button type="button" class="btn secondary" data-close data-i18n="action.cancel">Cancel</button>
+        <button type="submit" class="btn primary" data-i18n="action.save">Save</button>
       </div>
     </form>
   </dialog>
 
+  <script src="./static/i18n.js"></script>
   <script src="./static/app.js"></script>
 </body>
 </html>

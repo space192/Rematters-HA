@@ -1,51 +1,54 @@
-# Rematters — documentatie
+# Rematters documentation
 
-**Rematters** = *Remembers* + *Matter* — bewaar binding codes zodat je ze later terugvindt.
+**Rematters** = *Remembers* + *Matter* — keep binding codes so you can find them later.
 
-## Gebruik
+## Usage
 
-1. **Categorieën** — groepeer codes per ruimte, merk of eigen logica (rechtermuisklik op categorie = bewerken).
-2. **Codes toevoegen** — vul minimaal naam + manual code en/of `MT:` QR string in.
-3. **HA-koppeling** — optioneel `entity_id` + attribuut; gebruik **Ophalen uit HA** om de waarde te synchroniseren.
-4. **Exporteren** — download `rematters-export.json` voor backup of de Rematters viewer.
-5. **Backup nu** — lokale kopie + upload naar Google Drive (indien geconfigureerd).
+1. **Categories** — group codes by room, vendor, or your own logic (right-click a category to edit).
+2. **Add codes** — enter at least a name plus manual code and/or `MT:` QR string.
+3. **HA link** — optional `entity_id` + attribute; use **Pull from HA** to sync the value.
+4. **Export** — download `rematters-export.json` for backup or the [Rematters Viewer](https://viewer.rematters.nl).
+5. **Backup now** — local copy plus Google Drive upload (when configured).
 
-## Google Drive OAuth (eenmalig)
+## Languages
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → nieuw project → **APIs & Services** → enable **Google Drive API**.
-2. **OAuth consent screen** (External of Internal voor Workspace).
-3. **Credentials** → **Create OAuth client ID** → type **Desktop app**.
-4. Verkrijg een refresh token met scope `drive.file`, bijvoorbeeld via [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/) (eigen client ID/secret invullen).
-5. Maak in Drive een map `Rematters Backups` en kopieer de folder ID uit de URL: `https://drive.google.com/drive/folders/FOLDER_ID_HIER`.
+- **Ingress UI**: English by default; Dutch via the language dropdown (or `?lang=nl`). See `translations/README.md` to add locales.
+- **Add-on configuration** (Supervisor): `translations/en.yaml`, `translations/nl.yaml`.
 
-Configureer in de add-on:
+## Google Drive OAuth (one-time)
 
-| Optie | Beschrijving |
-|-------|----------------|
-| Google Drive backup | Aan/uit |
-| Folder ID | Doelmap |
+1. [Google Cloud Console](https://console.cloud.google.com/) → new project → enable **Google Drive API**.
+2. **OAuth consent screen** (External or Internal for Workspace).
+3. **Credentials** → **Create OAuth client ID** → **Desktop app**.
+4. Obtain a refresh token with scope `drive.file` (e.g. [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)).
+5. Create a folder in Drive named `Rematters Backups` and copy the **folder ID** from the URL.
+
+| Option | Description |
+|--------|-------------|
+| Google Drive backup | On/off |
+| Folder ID | Target folder |
 | Client ID / Secret / Refresh token | OAuth credentials |
 
-Automatische backups draaien volgens **Backup interval (hours)**; oude bestanden worden bijgehouden tot **Backups to retain**.
+Automatic backups follow **Backup interval (hours)**; old files are pruned per **Backups to retain**.
 
-## JSON-schema (v1)
+## JSON schema (v1)
 
 ```json
 {
   "meta": { "version": 1, "exported_at": "ISO8601", "addon_version": "0.1.0" },
   "categories": [
-    { "id": "uuid", "name": "Woonkamer", "color": "#6366f1", "sort_order": 0 }
+    { "id": "uuid", "name": "Living room", "color": "#6366f1", "sort_order": 0 }
   ],
   "codes": [
     {
       "id": "uuid",
-      "name": "Apparaatnaam",
-      "device_type": "lamp",
-      "category_id": "uuid-of-null",
+      "name": "Device name",
+      "device_type": "light",
+      "category_id": "uuid-or-null",
       "manual_code": "1234-567-8901",
       "qr_payload": "MT:…",
       "notes": "",
-      "ha_link": { "entity_id": "light.x", "attribute": "matter_setup_code" },
+      "ha_link": { "entity_id": "light.example", "attribute": "matter_setup_code" },
       "created_at": "ISO8601",
       "updated_at": "ISO8601"
     }
@@ -53,27 +56,27 @@ Automatische backups draaien volgens **Backup interval (hours)**; oude bestanden
 }
 ```
 
-## API (ingress)
+## API (Ingress)
 
-Alle routes onder `./api/` (relatief voor Ingress):
+All routes are relative to the Ingress base under `./api/`:
 
-| Methode | Pad | Actie |
-|---------|-----|--------|
-| GET | `/vault` | Volledige vault |
+| Method | Path | Action |
+|--------|------|--------|
+| GET | `/vault` | Full vault |
 | GET | `/export` | JSON download |
 | POST | `/import` | `{ "data": "…", "merge": false }` |
-| POST | `/backup` | Handmatige backup |
-| CRUD | `/categories`, `/codes` | Beheer |
-| POST | `/codes/{id}/sync-from-ha` | HA attribuut → code |
+| POST | `/backup` | Manual backup |
+| CRUD | `/categories`, `/codes` | Manage data |
+| POST | `/codes/{id}/sync-from-ha` | Pull from HA attribute |
 
-## Beveiliging
+## Security
 
-- Ingress verkeer komt alleen van Supervisor (`172.30.32.2`).
-- Geen aparte login in de add-on; HA authenticatie via Ingress.
-- Bewaar OAuth secrets alleen in add-on configuratie (niet in export-JSON).
+- Ingress traffic is only accepted from the Supervisor (`172.30.32.2`).
+- No separate login in the add-on; Home Assistant handles authentication via Ingress.
+- Keep OAuth secrets in add-on configuration only (not in export JSON).
 
-## Rematters viewer
+## Rematters Viewer
 
-Gebruikers zonder HA openen de export op **[viewer.rematters.nl](https://viewer.rematters.nl)** (bron: [Rematters-Webviewer](https://github.com/Rematters/Rematters-Webviewer)). De viewer valideert `codes[]` en rendert QR lokaal in de browser.
+Users without HA can open exports at **[viewer.rematters.nl](https://viewer.rematters.nl)** ([Rematters-Webviewer](https://github.com/Rematters/Rematters-Webviewer)). The viewer validates `codes[]` and renders QR codes locally in the browser.
 
-Productsite en installatie: [rematters.nl](https://rematters.nl) · [Rematters-Web](https://github.com/Rematters/Rematters-Web)
+Product site: [rematters.nl](https://rematters.nl) · [Rematters-Web](https://github.com/Rematters/Rematters-Web)

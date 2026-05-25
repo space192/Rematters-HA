@@ -49,14 +49,14 @@ def _find_category(vault, category_id: str) -> Category:
     for cat in vault.categories:
         if cat.id == category_id:
             return cat
-    raise HTTPException(404, "Categorie niet gevonden")
+    raise HTTPException(404, "Category not found")
 
 
 def _find_code(vault, code_id: str) -> MatterCode:
     for code in vault.codes:
         if code.id == code_id:
             return code
-    raise HTTPException(404, "Matter code niet gevonden")
+    raise HTTPException(404, "Matter code not found")
 
 
 def run_backup() -> dict[str, Any]:
@@ -147,7 +147,7 @@ async def import_vault(body: ImportBody):
     try:
         vault = storage.import_json(body.data, merge=body.merge)
     except Exception as exc:
-        raise HTTPException(400, f"Ongeldige JSON: {exc}") from exc
+        raise HTTPException(400, f"Invalid JSON: {exc}") from exc
     return vault.model_dump()
 
 
@@ -265,7 +265,7 @@ async def code_qr_png(code_id: str):
     code = _find_code(vault, code_id)
     payload = code.qr_payload or code.manual_code
     if not payload:
-        raise HTTPException(400, "Geen QR payload of manual code")
+        raise HTTPException(400, "No QR payload or manual code")
     img = qrcode.make(payload)
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -285,7 +285,7 @@ async def ha_entities(domain: Optional[str] = Query(None)):
 async def ha_attribute(entity_id: str, attribute: str):
     value = await ha.get_attribute(entity_id, attribute)
     if value is None:
-        raise HTTPException(404, "Attribuut of entity niet gevonden")
+        raise HTTPException(404, "Entity or attribute not found")
     return {"entity_id": entity_id, "attribute": attribute, "value": value}
 
 
@@ -295,10 +295,10 @@ async def sync_code_from_ha(code_id: str):
     code = _find_code(vault, code_id)
     link = code.ha_link
     if not link.entity_id or not link.attribute:
-        raise HTTPException(400, "Geen HA entity/attribuut gekoppeld")
+        raise HTTPException(400, "No Home Assistant entity/attribute linked")
     value = await ha.get_attribute(link.entity_id, link.attribute)
     if value is None:
-        raise HTTPException(404, "Kon attribuut niet ophalen uit Home Assistant")
+        raise HTTPException(404, "Could not read attribute from Home Assistant")
     if isinstance(value, str):
         if value.upper().startswith("MT:"):
             code.qr_payload = value

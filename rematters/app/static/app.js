@@ -1,7 +1,8 @@
 /**
- * Rematters admin UI — uses relative API paths for HA ingress.
+ * Rematters admin UI — relative API paths for HA ingress.
  */
 const API = "./api";
+const { t, initI18n, setLocale } = window.RemattersI18n;
 
 let vault = { categories: [], codes: [] };
 let activeCategoryId = null;
@@ -28,7 +29,7 @@ async function loadVault() {
 
 function categoryName(id) {
   const c = vault.categories.find((x) => x.id === id);
-  return c ? c.name : "Geen categorie";
+  return c ? c.name : t("categories.none");
 }
 
 function filteredCodes() {
@@ -98,8 +99,8 @@ function renderCodes() {
       ${code.ha_link?.entity_id ? `<p class="code-meta">HA: ${escapeHtml(code.ha_link.entity_id)}.${escapeHtml(code.ha_link.attribute || "")}</p>` : ""}
       ${hasQr ? `<img class="qr" src="./api/codes/${code.id}/qr.png" alt="QR" />` : ""}
       <div class="card-actions">
-        <button type="button" class="btn secondary" data-edit>Bewerken</button>
-        <button type="button" class="btn danger" data-delete>Verwijderen</button>
+        <button type="button" class="btn secondary" data-edit>${escapeHtml(t("action.edit"))}</button>
+        <button type="button" class="btn danger" data-delete>${escapeHtml(t("action.delete"))}</button>
       </div>
     `;
     card.querySelector("[data-edit]").onclick = () => openCodeDialog(code);
@@ -116,7 +117,7 @@ function render() {
 
 function fillCategorySelect() {
   const sel = document.getElementById("code-category");
-  sel.innerHTML = '<option value="">— Geen —</option>';
+  sel.innerHTML = `<option value="">${escapeHtml(t("code.category_none"))}</option>`;
   for (const cat of vault.categories) {
     const opt = document.createElement("option");
     opt.value = cat.id;
@@ -135,8 +136,8 @@ function escapeHtml(s) {
 function openCodeDialog(code = null) {
   const dlg = document.getElementById("code-dialog");
   document.getElementById("code-dialog-title").textContent = code
-    ? "Code bewerken"
-    : "Nieuwe Matter code";
+    ? t("code.dialog_edit")
+    : t("code.dialog_new");
   document.getElementById("code-id").value = code?.id || "";
   document.getElementById("code-name").value = code?.name || "";
   document.getElementById("code-device-type").value = code?.device_type || "";
@@ -152,8 +153,8 @@ function openCodeDialog(code = null) {
 function openCategoryDialog(cat = null) {
   const dlg = document.getElementById("category-dialog");
   document.getElementById("category-dialog-title").textContent = cat
-    ? "Categorie bewerken"
-    : "Nieuwe categorie";
+    ? t("categories.dialog_edit")
+    : t("categories.dialog_new");
   document.getElementById("category-id").value = cat?.id || "";
   document.getElementById("category-name").value = cat?.name || "";
   document.getElementById("category-color").value = cat?.color || "#6366f1";
@@ -185,7 +186,7 @@ async function saveCode(e) {
 }
 
 async function deleteCode(id) {
-  if (!confirm("Deze Matter code verwijderen?")) return;
+  if (!confirm(t("confirm.delete_code"))) return;
   await api(`/codes/${id}`, { method: "DELETE" });
   await loadVault();
 }
@@ -211,65 +212,87 @@ async function loadBackupStatus() {
     const s = await api("/backup/status");
     const el = document.getElementById("backup-status");
     el.textContent = s.gdrive_configured
-      ? `Google Drive backup actief (elke ${s.interval_hours}u)`
-      : "Google Drive niet geconfigureerd — configureer in add-on instellingen.";
+      ? t("backup.gdrive_active", { hours: s.interval_hours })
+      : t("backup.gdrive_inactive");
   } catch {
     /* ignore */
   }
 }
 
-document.getElementById("btn-add-code").onclick = () => openCodeDialog();
-document.getElementById("btn-add-category").onclick = () => openCategoryDialog();
-document.getElementById("code-form").onsubmit = saveCode;
-document.getElementById("category-form").onsubmit = saveCategory;
-document.getElementById("search").oninput = renderCodes;
+function bindUi() {
+  document.getElementById("btn-add-code").onclick = () => openCodeDialog();
+  document.getElementById("btn-add-category").onclick = () => openCategoryDialog();
+  document.getElementById("code-form").onsubmit = saveCode;
+  document.getElementById("category-form").onsubmit = saveCategory;
+  document.getElementById("search").oninput = renderCodes;
 
-document.getElementById("filter-all").onclick = () => {
-  activeCategoryId = null;
-  document.getElementById("filter-all").classList.add("active");
-  renderCodes();
-};
+  document.getElementById("filter-all").onclick = () => {
+    activeCategoryId = null;
+    document.getElementById("filter-all").classList.add("active");
+    renderCodes();
+  };
 
-document.querySelectorAll("[data-close]").forEach((btn) => {
-  btn.onclick = () => btn.closest("dialog").close();
-});
-
-document.getElementById("btn-export").onclick = () => {
-  window.location.href = "./api/export";
-};
-
-document.getElementById("import-file").onchange = async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  const text = await file.text();
-  const merge = confirm("Samenvoegen met bestaande data? (Annuleren = vervangen)");
-  await api("/import", {
-    method: "POST",
-    body: JSON.stringify({ data: text, merge }),
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.onclick = () => btn.closest("dialog").close();
   });
-  e.target.value = "";
-  await loadVault();
-};
 
-document.getElementById("btn-backup").onclick = async () => {
-  const r = await api("/backup", { method: "POST" });
-  alert(r.gdrive_file_id ? "Backup naar Google Drive gelukt." : "Lokale backup gemaakt.");
-};
+  document.getElementById("btn-export").onclick = () => {
+    window.location.href = "./api/export";
+  };
 
-document.getElementById("btn-sync-ha").onclick = async () => {
-  const id = document.getElementById("code-id").value;
-  if (!id) {
-    alert("Sla de code eerst op voordat je synchroniseert uit HA.");
-    return;
-  }
-  try {
-    await api(`/codes/${id}/sync-from-ha`, { method: "POST" });
+  document.getElementById("import-file").onchange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const merge = confirm(t("confirm.import_merge"));
+    await api("/import", {
+      method: "POST",
+      body: JSON.stringify({ data: text, merge }),
+    });
+    e.target.value = "";
     await loadVault();
-    openCodeDialog(vault.codes.find((c) => c.id === id));
-  } catch (err) {
-    alert(err.message);
-  }
-};
+  };
 
-loadVault();
-loadBackupStatus();
+  document.getElementById("btn-backup").onclick = async () => {
+    const r = await api("/backup", { method: "POST" });
+    alert(
+      r.gdrive_file_id ? t("alert.backup_gdrive_ok") : t("alert.backup_local_ok")
+    );
+  };
+
+  document.getElementById("btn-sync-ha").onclick = async () => {
+    const id = document.getElementById("code-id").value;
+    if (!id) {
+      alert(t("alert.save_before_sync"));
+      return;
+    }
+    try {
+      await api(`/codes/${id}/sync-from-ha`, { method: "POST" });
+      await loadVault();
+      openCodeDialog(vault.codes.find((c) => c.id === id));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  document.getElementById("locale-select").onchange = (e) => {
+    setLocale(e.target.value).then(() => {
+      render();
+      loadBackupStatus();
+    });
+  };
+
+  window.addEventListener("rematters:locale", () => {
+    render();
+    loadBackupStatus();
+  });
+}
+
+async function boot() {
+  await initI18n();
+  bindUi();
+  await loadVault();
+  await loadBackupStatus();
+}
+
+boot();

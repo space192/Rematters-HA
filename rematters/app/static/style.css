@@ -36,6 +36,23 @@ body {
 .subtitle { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem; }
 .header-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 
+.locale-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.locale-label select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 240px 1fr;

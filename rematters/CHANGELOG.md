@@ -2,7 +2,7 @@
 
 ## 0.1.0 — 2026-05-25
 
-- Eerste MVP: Matter codes CRUD, categorieën, HA attribuut-koppeling
-- JSON opslag, export/import, lokale + Google Drive backup
-- Ingress beheer-UI (Rematters)
-- Rematters-Webviewer (aparte repo)
+- Initial MVP: Matter codes CRUD, categories, HA attribute link
+- JSON storage, export/import, local + Google Drive backup
+- Ingress UI (English default, Dutch via i18n)
+- Rematters Webviewer (separate repo)

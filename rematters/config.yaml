@@ -1,7 +1,7 @@
 name: Rematters
 version: "0.1.0"
 slug: rematters
-description: Rematters — onthoud Matter binding codes en QR-codes. Categoriseer, exporteer en backup naar Google Drive.
+description: Store and organize Matter pairing codes and QR payloads. Export JSON and back up to Google Drive.
 url: https://github.com/Rematters/Rematters-HA
 arch:
   - aarch64
