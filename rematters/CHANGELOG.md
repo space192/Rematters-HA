@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.8 — 2026-05-29
+
+- Vault code cards match Rematters Cloud (Share / Edit / Delete icons, English labels)
+- Share always visible; download image works locally; secret links need Cloud sync
+- Category select uses “No category”; code dialogs use English titles like the cloud app
+
 ## 0.1.7 — 2026-05-29
 
 - Share icon on code cards (via Rematters Cloud when hybrid is configured)

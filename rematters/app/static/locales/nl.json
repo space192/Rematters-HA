@@ -27,7 +27,7 @@
   "code.device_type": "Apparaattype",
   "code.device_type_placeholder": "bijv. lamp, schakelaar",
   "code.category": "Categorie",
-  "code.category_none": "— Geen —",
+  "code.category_none": "Geen categorie",
   "code.manual": "Manual code (11 cijfers)",
   "code.manual_placeholder": "1234-567-8901",
   "code.qr": "QR payload (MT:…)",

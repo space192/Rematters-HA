@@ -27,7 +27,7 @@
   "code.device_type": "Device type",
   "code.device_type_placeholder": "e.g. light, switch",
   "code.category": "Category",
-  "code.category_none": "— None —",
+  "code.category_none": "No category",
   "code.manual": "Manual code (11 digits)",
   "code.manual_placeholder": "1234-567-8901",
   "code.qr": "QR payload (MT:…)",

@@ -144,25 +144,25 @@
 
   <dialog id="share-dialog" class="share-dialog">
     <form method="dialog">
-      <h3 data-i18n="share.title">Share Matter code</h3>
+      <h3>Share Matter code</h3>
       <p class="share-dialog-name" id="share-dialog-name"></p>
       <div class="share-dialog-actions">
-        <button type="button" class="rm-btn rm-btn-secondary" id="share-btn-image" data-i18n="share.download_image">Download image</button>
-        <button type="button" class="rm-btn rm-btn-primary" id="share-btn-link" data-i18n="share.create_link">Create secret link</button>
+        <button type="button" class="rm-btn rm-btn-secondary" id="share-btn-image">Download image</button>
+        <button type="button" class="rm-btn rm-btn-primary" id="share-btn-link">Create secret link</button>
       </div>
       <div id="share-link-panel" class="share-link-panel hidden">
-        <p class="share-link-hint" data-i18n="share.link_hint">Only people with the full URL (including ?k=) can open the page.</p>
-        <label class="share-url-label"><span data-i18n="share.url_label">Share URL</span>
+        <p class="share-link-hint">Only people with this full URL (including <code>?k=</code>) can open the page. Not searchable on the site.</p>
+        <label class="share-url-label">Share URL
           <input type="text" id="share-url" readonly />
         </label>
         <div class="dialog-actions">
-          <button type="button" class="rm-btn rm-btn-secondary" id="share-copy-url" data-i18n="share.copy">Copy link</button>
-          <button type="button" class="rm-btn rm-btn-secondary" id="share-open-url" data-i18n="share.open">Open page</button>
+          <button type="button" class="rm-btn rm-btn-secondary" id="share-copy-url">Copy link</button>
+          <button type="button" class="rm-btn rm-btn-secondary" id="share-open-url">Open page</button>
         </div>
         <ul id="share-active-list" class="share-active-list"></ul>
       </div>
       <div class="dialog-actions">
-        <button type="button" class="rm-btn rm-btn-secondary" data-close data-i18n="action.cancel">Close</button>
+        <button type="button" class="rm-btn rm-btn-secondary" data-close>Close</button>
       </div>
     </form>
   </dialog>
@@ -184,6 +184,7 @@
   <script src="./static/brand/js/matter-scan.js"></script>
   <script src="./static/brand/js/matter-scanner.js"></script>
   <script src="./static/brand/js/vault-scan-ui.js"></script>
+  <script src="./static/brand/js/vault-cards.js"></script>
   <script src="./static/brand/js/vault-share-ui.js"></script>
   <script src="./static/app.js"></script>
 </body>

@@ -33,8 +33,11 @@ async function loadVault() {
 }
 
 function categoryName(id) {
+  if (window.RemattersVaultCards) {
+    return window.RemattersVaultCards.categoryNameDefault(vault, id);
+  }
   const c = vault.categories.find((x) => x.id === id);
-  return c ? c.name : t("categories.none");
+  return c ? c.name : "Uncategorized";
 }
 
 function filteredCodes() {
@@ -88,41 +91,23 @@ function renderCodes() {
   grid.innerHTML = "";
   empty.classList.toggle("hidden", codes.length > 0);
 
+  const Cards = window.RemattersVaultCards;
   for (const code of codes) {
     const card = document.createElement("article");
     card.className = "code-card";
-    const hasQr = code.qr_payload || code.manual_code;
-    const icons = window.RemattersVaultShareUi?.cardIconButtonsHtml({
-      iconsHref: "./static/brand/icons.svg",
-      showShare: cloudShareAvailable,
-      shareLabel: t("action.share"),
-      editLabel: t("action.edit"),
-      deleteLabel: t("action.delete"),
-    }) || "";
-    card.innerHTML = `
-      <div class="code-card-top">
-        <h3>${escapeHtml(code.name)}</h3>
-        ${icons}
-      </div>
-      <div class="code-meta">
-        ${code.device_type ? escapeHtml(code.device_type) + " · " : ""}
-        <span class="badge">${escapeHtml(categoryName(code.category_id))}</span>
-      </div>
-      ${code.manual_code ? `<div class="code-value">${escapeHtml(code.manual_code)}</div>` : ""}
-      ${code.qr_payload ? `<div class="code-value">${escapeHtml(code.qr_payload)}</div>` : ""}
-      ${code.notes ? `<p class="code-meta">${escapeHtml(code.notes)}</p>` : ""}
-      ${code.ha_link?.entity_id ? `<p class="code-meta">HA: ${escapeHtml(code.ha_link.entity_id)}.${escapeHtml(code.ha_link.attribute || "")}</p>` : ""}
-      ${hasQr ? `<img class="qr" src="./api/codes/${code.id}/qr.png" alt="QR" />` : ""}
-    `;
-    const shareBtn = card.querySelector("[data-share]");
-    if (shareBtn && shareUi) {
-      shareBtn.onclick = () => shareUi.openShareDialog(code);
-    } else if (shareBtn) {
-      shareBtn.disabled = true;
-      shareBtn.title = t("share.cloud_required");
+    if (Cards) {
+      card.innerHTML = Cards.buildCodeCardHtml(code, {
+        escapeHtml,
+        categoryName,
+        iconsHref: "./static/brand/icons.svg",
+        qrApiPrefix: "./api",
+      });
+      Cards.wireCodeCard(card, code, {
+        onShare: shareUi ? (c) => shareUi.openShareDialog(c) : null,
+        onEdit: openCodeDialog,
+        onDelete: deleteCode,
+      });
     }
-    card.querySelector("[data-edit]").onclick = () => openCodeDialog(code);
-    card.querySelector("[data-delete]").onclick = () => deleteCode(code.id);
     grid.appendChild(card);
   }
 }
@@ -135,7 +120,11 @@ function render() {
 
 function fillCategorySelect() {
   const sel = document.getElementById("code-category");
-  sel.innerHTML = `<option value="">${escapeHtml(t("code.category_none"))}</option>`;
+  if (window.RemattersVaultCards) {
+    window.RemattersVaultCards.fillCategorySelect(sel, vault);
+    return;
+  }
+  sel.innerHTML = `<option value="">No category</option>`;
   for (const cat of vault.categories) {
     const opt = document.createElement("option");
     opt.value = cat.id;
@@ -154,8 +143,8 @@ function escapeHtml(s) {
 function openCodeDialog(code = null) {
   const dlg = document.getElementById("code-dialog");
   document.getElementById("code-dialog-title").textContent = code
-    ? t("code.dialog_edit")
-    : t("code.dialog_new");
+    ? "Edit Matter code"
+    : "New Matter code";
   document.getElementById("code-id").value = code?.id || "";
   document.getElementById("code-name").value = code?.name || "";
   document.getElementById("code-device-type").value = code?.device_type || "";
@@ -171,8 +160,8 @@ function openCodeDialog(code = null) {
 function openCategoryDialog(cat = null) {
   const dlg = document.getElementById("category-dialog");
   document.getElementById("category-dialog-title").textContent = cat
-    ? t("categories.dialog_edit")
-    : t("categories.dialog_new");
+    ? "Edit category"
+    : "New category";
   document.getElementById("category-id").value = cat?.id || "";
   document.getElementById("category-name").value = cat?.name || "";
   document.getElementById("category-color").value = cat?.color || "#6366f1";
@@ -247,6 +236,19 @@ async function saveCategory(e) {
   await loadVault();
 }
 
+async function loadCloudStatus() {
+  try {
+    const s = await api("/cloud/status");
+    cloudShareAvailable = Boolean(s.share_available ?? s.configured);
+    const btnCloud = document.getElementById("btn-cloud-sync");
+    if (btnCloud && !s.configured && s.hint) {
+      btnCloud.title = s.hint;
+    }
+  } catch {
+    cloudShareAvailable = false;
+  }
+}
+
 async function loadBackupStatus() {
   try {
     const s = await api("/backup/status");
@@ -295,20 +297,15 @@ function bindUi() {
 
   const btnCloud = document.getElementById("btn-cloud-sync");
   if (btnCloud) {
-    api("/cloud/status")
-      .then((s) => {
-        cloudShareAvailable = Boolean(s.share_available ?? s.configured);
-        if (!s.configured && s.hint) {
-          btnCloud.title = s.hint;
-        }
-        renderCodes();
-      })
-      .catch(() => {});
     btnCloud.onclick = async () => {
       try {
         const r = await api("/cloud/sync", { method: "POST" });
         alert(r.ok ? t("alert.cloud_sync_ok") : t("alert.cloud_sync_fail"));
         await loadVault();
+        await loadCloudStatus();
+        shareUi = null;
+        bindShareUiOnce();
+        renderCodes();
       } catch (err) {
         alert(err.message || t("alert.cloud_sync_fail"));
       }
@@ -359,25 +356,30 @@ function bindUi() {
 
 window.RemattersUI = { refreshBackupStatus: loadBackupStatus };
 
+function bindShareUiOnce() {
+  if (!window.RemattersVaultShareUi || shareUi) return;
+  shareUi = window.RemattersVaultShareUi.bindShareUi({
+    api,
+    apiBase: API,
+    cloudShareEnabled: cloudShareAvailable,
+    messages: {
+      activeLinks: "Active secret links (copy URL when created):",
+      revoke: "Revoke",
+      revokeConfirm: "Revoke this share link?",
+      linkCopied: "Secret link created and copied to clipboard.",
+      linkCreated: "Secret link created. Copy the URL from the dialog.",
+      copied: "Link copied.",
+      downloadFail: "Could not generate image",
+      linkFail: "Could not create link",
+      cloudRequired:
+        "Configure Rematters Cloud (cloud_url + cloud_token) and run Cloud sync to create secret links.",
+    },
+  });
+}
+
 async function boot() {
   await initI18n();
   bindUi();
-  if (window.RemattersVaultShareUi) {
-    shareUi = window.RemattersVaultShareUi.bindShareUi({
-      api,
-      apiBase: `${API}`,
-      messages: {
-        activeLinks: t("share.active_links"),
-        revoke: t("share.revoke"),
-        revokeConfirm: t("share.revoke_confirm"),
-        linkCopied: t("share.link_copied"),
-        linkCreated: t("share.link_created"),
-        copied: t("share.copied"),
-        downloadFail: t("share.download_fail"),
-        linkFail: t("share.link_fail"),
-      },
-    });
-  }
   if (window.RemattersVaultScanUi) {
     window.RemattersVaultScanUi.bindVaultScanUi({
       getVault: () => vault,
@@ -386,6 +388,8 @@ async function boot() {
       libUrl: SCAN_LIB_URL,
     });
   }
+  await loadCloudStatus();
+  bindShareUiOnce();
   await loadVault();
   await loadBackupStatus();
 }

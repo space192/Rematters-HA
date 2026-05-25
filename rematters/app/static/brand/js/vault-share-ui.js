@@ -113,6 +113,13 @@
 
     document.getElementById("share-btn-link")?.addEventListener("click", async () => {
       if (!shareDialogCode) return;
+      if (config.cloudShareEnabled === false) {
+        alert(
+          msg.cloudRequired ||
+            "Configure Rematters Cloud and run Cloud sync to create secret share links."
+        );
+        return;
+      }
       try {
         const share = await createShareLink(shareDialogCode.id);
         if (navigator.clipboard?.writeText) {

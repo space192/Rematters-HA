@@ -28,6 +28,7 @@ from models import (
     utc_now,
 )
 from cloud_sync import cloud_api_raw, cloud_configured, load_cloud_options, run_cloud_sync, _api_request
+from share_card import card_png_bytes
 from models import Vault
 from storage import VaultStorage
 
@@ -423,12 +424,26 @@ async def revoke_code_share(share_id: int):
 
 @app.get("/api/codes/{code_id}/card.png")
 async def code_card_png(code_id: str):
-    _require_cloud_for_share()
+    vault = storage.load()
+    code = _find_code(vault, code_id)
+    if cloud_configured():
+        try:
+            data, content_type = cloud_api_raw("GET", f"/api/codes/{code_id}/card.png")
+            return StreamingResponse(
+                io.BytesIO(data), media_type=content_type.split(";")[0].strip()
+            )
+        except RuntimeError:
+            pass
     try:
-        data, content_type = cloud_api_raw("GET", f"/api/codes/{code_id}/card.png")
-    except RuntimeError as e:
-        raise HTTPException(502, str(e)) from e
-    return StreamingResponse(io.BytesIO(data), media_type=content_type.split(";")[0].strip())
+        png = card_png_bytes(
+            code.name,
+            code.device_type or "",
+            code.manual_code or "",
+            code.qr_payload or "",
+        )
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    return StreamingResponse(io.BytesIO(png), media_type="image/png")
 
 
 # --- Cloud sync (optional hybrid) ---
