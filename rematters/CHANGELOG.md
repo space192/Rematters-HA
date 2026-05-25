@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.14 (2026-05-25)
+
+- Matter sticker: fixed logo (inline SVG), QR placeholder when no MT payload, equal card heights
+- Larger device name under each code card
+
 ## 0.1.13 (2026-05-25)
 
 - Category icons (Lucide, bundled offline) next to name and color in sidebar and editor
