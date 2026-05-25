@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.22 (2026-05-26)
+
+- QR PNG: crop quiet-zone margins so modules fill the sticker slot (logo and QR align visually)
+- Share/download card QR uses the same cropped renderer
+
 ## 0.1.21 (2026-05-26)
 
 - Theme dropdown: active mode icon visible in header trigger (single SVG)

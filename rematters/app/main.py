@@ -8,7 +8,6 @@ import os
 from contextlib import asynccontextmanager
 from typing import Any, Optional
 
-import qrcode
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,6 +28,7 @@ from models import (
 )
 from cloud_sync import cloud_api_raw, cloud_configured, load_cloud_options, run_cloud_sync, _api_request
 from matter_label import label_png_bytes
+from matter_qr_image import qr_png_bytes
 from matter_payload import normalize_fields, qr_encode_payload
 from models import Vault
 from storage import VaultStorage
@@ -159,7 +159,7 @@ async def lifespan(app: FastAPI):
         scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="Rematters", version="0.1.21", lifespan=lifespan)
+app = FastAPI(title="Rematters", version="0.1.22", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -351,11 +351,10 @@ async def code_qr_png(code_id: str):
     payload = qr_encode_payload(code.qr_payload or "", code.manual_code or "")
     if not payload:
         raise HTTPException(400, "No MT: QR payload stored")
-    img = qrcode.make(payload)
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    buf.seek(0)
-    return StreamingResponse(buf, media_type="image/png")
+    return StreamingResponse(
+        io.BytesIO(qr_png_bytes(payload)),
+        media_type="image/png",
+    )
 
 
 @app.get("/api/codes/{code_id}/label.png")
@@ -525,7 +524,7 @@ async def index():
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.isfile(index_path):
         return FileResponse(index_path)
-    return JSONResponse({"service": "rematters", "version": "0.1.21"})
+    return JSONResponse({"service": "rematters", "version": "0.1.22"})
 
 
 if __name__ == "__main__":

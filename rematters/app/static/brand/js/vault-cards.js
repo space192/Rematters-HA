@@ -37,7 +37,7 @@
     const hasMt = hasMtPayload(code);
     if (hasMt) {
       return `<div class="matter-sticker-qr-slot">
-        <img class="matter-sticker-qr" src="${apiPrefix}/codes/${code.id}/qr.png" alt="" loading="lazy" decoding="async" />
+        <img class="matter-sticker-qr" src="${apiPrefix}/codes/${code.id}/qr.png?fit=1" alt="" loading="lazy" decoding="async" />
       </div>`;
     }
     return `<div class="matter-sticker-qr-slot" aria-hidden="true">

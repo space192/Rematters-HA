@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import io
 
-import qrcode
 from PIL import Image, ImageDraw
+
+from matter_payload import qr_encode_payload
+from matter_qr_image import qr_pil_image
 
 
 def card_png_bytes(
@@ -14,12 +16,11 @@ def card_png_bytes(
     manual_code: str,
     qr_payload: str,
 ) -> bytes:
-    payload = (qr_payload or "").strip() or (manual_code or "").strip()
-    if not payload:
+    encode = qr_encode_payload(qr_payload or "", manual_code or "")
+    if encode is None:
         raise ValueError("No code to render")
 
-    qr_img = qrcode.make(payload)
-    qr_img = qr_img.resize((280, 280))
+    qr_img = qr_pil_image(encode, 280)
 
     w, h = 520, 680
     img = Image.new("RGB", (w, h), "white")

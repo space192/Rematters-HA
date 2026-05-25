@@ -5,10 +5,10 @@ from __future__ import annotations
 import io
 import os
 
-import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
 from matter_payload import display_manual, qr_encode_payload
+from matter_qr_image import qr_pil_image
 
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 WORDMARK = os.path.join(STATIC_DIR, "assets", "matter_logo.png")
@@ -49,10 +49,9 @@ def label_png_bytes(manual_code: str, qr_payload: str) -> bytes | None:
         logo_h = 20
 
     if has_qr:
-        qr_img = qrcode.make(encode)
-        qr_img = qr_img.resize((QR_SIZE, QR_SIZE), Image.Resampling.NEAREST)
+        qr_img = qr_pil_image(encode, QR_SIZE)
         qr_y = PAD_Y + logo_h + GAP
-        img.paste(qr_img, ((w - QR_SIZE) // 2, qr_y), qr_img)
+        img.paste(qr_img, ((w - QR_SIZE) // 2, qr_y))
 
     if manual:
         font = _mono_font(22)
