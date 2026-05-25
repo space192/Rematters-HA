@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.11 — 2026-05-25
+
+- Release bump (same Matter sticker cards as 0.1.10; update via Supervisor)
+
 ## 0.1.10 — 2026-05-25
 
 - Catalog cards match the physical Matter sticker (wordmark, QR, setup code)
