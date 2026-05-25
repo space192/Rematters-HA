@@ -275,18 +275,27 @@ function bindUi() {
     }
   };
 
-  document.getElementById("locale-select").onchange = (e) => {
-    setLocale(e.target.value).then(() => {
-      render();
-      loadBackupStatus();
+  const localeSwitch = document.getElementById("locale-switch");
+  if (localeSwitch) {
+    localeSwitch.addEventListener("click", (e) => {
+      const btn = e.target.closest(".locale-btn[data-locale]");
+      if (!btn) return;
+      const code = btn.dataset.locale;
+      if (code === window.RemattersI18n.getLocale()) return;
+      setLocale(code).then(() => {
+        render();
+        loadBackupStatus();
+      });
     });
-  };
+  }
 
   window.addEventListener("rematters:locale", () => {
     render();
     loadBackupStatus();
   });
 }
+
+window.RemattersUI = { refreshBackupStatus: loadBackupStatus };
 
 async function boot() {
   await initI18n();

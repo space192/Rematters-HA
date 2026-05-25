@@ -13,13 +13,27 @@
       <p class="subtitle" data-i18n="app.subtitle">Store and organize Matter pairing codes</p>
     </div>
     <div class="header-actions">
-      <label class="locale-label">
-        <span data-i18n="lang.label">Language</span>
-        <select id="locale-select" aria-label="Language">
-          <option value="en">English</option>
-          <option value="nl">Nederlands</option>
-        </select>
-      </label>
+      <div class="locale-switch" id="locale-switch" role="group" aria-label="Language">
+        <button type="button" class="locale-btn is-active" data-locale="en" aria-label="English" aria-pressed="true" title="English">
+          <svg class="flag-icon" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <clipPath id="gb-clip"><path d="M0 0h60v30H0z"/></clipPath>
+            <g clip-path="url(#gb-clip)">
+              <path fill="#012169" d="M0 0h60v30H0z"/>
+              <path stroke="#fff" stroke-width="6" d="M0 0l60 30M60 0L0 30"/>
+              <path stroke="#C8102E" stroke-width="4" d="M0 0l60 30M60 0L0 30"/>
+              <path stroke="#fff" stroke-width="10" d="M30 0v30M0 15h60"/>
+              <path stroke="#C8102E" stroke-width="6" d="M30 0v30M0 15h60"/>
+            </g>
+          </svg>
+        </button>
+        <button type="button" class="locale-btn" data-locale="nl" aria-label="Nederlands" aria-pressed="false" title="Nederlands">
+          <svg class="flag-icon" viewBox="0 0 9 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="9" height="2" y="0" fill="#AE1C28"/>
+            <rect width="9" height="2" y="2" fill="#FFF"/>
+            <rect width="9" height="2" y="4" fill="#21468B"/>
+          </svg>
+        </button>
+      </div>
       <button type="button" id="btn-export" class="btn secondary" data-i18n="action.export">Export</button>
       <label class="btn secondary file-label">
         <span data-i18n="action.import">Import</span>

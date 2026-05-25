@@ -4,6 +4,7 @@
  */
 (function (global) {
   const STORAGE_KEY = "rematters_locale";
+  const LOCALE_CHOSEN_KEY = "rematters_locale_chosen";
   const DEFAULT_LOCALE = "en";
   const SUPPORTED = ["en", "nl"];
 
@@ -22,12 +23,12 @@
 
   function resolveLocale(requested) {
     if (requested && SUPPORTED.includes(requested)) return requested;
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored && SUPPORTED.includes(stored)) return stored;
     const param = new URLSearchParams(location.search).get("lang");
     if (param && SUPPORTED.includes(param)) return param;
-    const htmlLang = (document.documentElement.lang || "").slice(0, 2);
-    if (SUPPORTED.includes(htmlLang)) return htmlLang;
+    if (localStorage.getItem(LOCALE_CHOSEN_KEY) === "1") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored && SUPPORTED.includes(stored)) return stored;
+    }
     return DEFAULT_LOCALE;
   }
 
@@ -50,13 +51,21 @@
       const key = el.getAttribute("data-i18n-title");
       if (key) el.title = t(key);
     });
-    const sel = document.getElementById("locale-select");
-    if (sel) sel.value = locale;
+    syncLocaleButtons();
+  }
+
+  function syncLocaleButtons() {
+    document.querySelectorAll(".locale-btn[data-locale]").forEach((btn) => {
+      const active = btn.dataset.locale === locale;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    });
   }
 
   async function setLocale(next) {
     locale = resolveLocale(next);
     localStorage.setItem(STORAGE_KEY, locale);
+    localStorage.setItem(LOCALE_CHOSEN_KEY, "1");
     document.documentElement.lang = locale;
     try {
       strings = await loadLocaleFile(locale);
@@ -65,7 +74,14 @@
       locale = DEFAULT_LOCALE;
     }
     applyToDom();
+    refreshDynamicUi();
     global.dispatchEvent(new CustomEvent("rematters:locale", { detail: { locale } }));
+  }
+
+  function refreshDynamicUi() {
+    if (typeof global.RemattersUI?.refreshBackupStatus === "function") {
+      global.RemattersUI.refreshBackupStatus();
+    }
   }
 
   async function initI18n() {
@@ -79,6 +95,7 @@
       document.documentElement.lang = locale;
     }
     applyToDom();
+    refreshDynamicUi();
   }
 
   global.RemattersI18n = {

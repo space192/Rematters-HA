@@ -41,6 +41,6 @@
   "alert.backup_local_ok": "Lokale backup gemaakt.",
   "alert.save_before_sync": "Sla de code eerst op voordat je synchroniseert uit HA.",
   "backup.gdrive_active": "Google Drive backup actief (elke {hours}u)",
-  "backup.gdrive_inactive": "Google Drive niet geconfigureerd — configureer in add-on instellingen.",
+  "backup.gdrive_inactive": "Google Drive niet geconfigureerd — configureer via Instellingen → Apps → Rematters.",
   "lang.label": "Taal"
 }

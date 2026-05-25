@@ -24,4 +24,4 @@ Add a locale:
 2. Add the code to `SUPPORTED` in `app/static/i18n.js`
 3. Translate all keys
 
-Users can also pass `?lang=nl` or set `localStorage.rematters_locale`.
+Users can also pass `?lang=nl` or set `localStorage.rematters_locale`, or use the flag toggle in the header (GB / NL).

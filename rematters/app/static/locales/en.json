@@ -41,6 +41,6 @@
   "alert.backup_local_ok": "Local backup created.",
   "alert.save_before_sync": "Save the code before syncing from Home Assistant.",
   "backup.gdrive_active": "Google Drive backup active (every {hours}h)",
-  "backup.gdrive_inactive": "Google Drive not configured — set options in the add-on configuration.",
+  "backup.gdrive_inactive": "Google Drive not configured — configure under Settings → Apps → Rematters.",
   "lang.label": "Language"
 }
