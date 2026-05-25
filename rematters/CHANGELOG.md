@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.21 (2026-05-26)
+
+- Theme dropdown: active mode icon visible in header trigger (single SVG)
+- Language selector: flag-only dropdown (EN, NL, DE, FR, ES, IT)
+- Brand sync: updated icons.svg stroke on theme symbols
+
 ## 0.1.20 (2026-05-26)
 
 - Compact header: remove subtitle under logo
