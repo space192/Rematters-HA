@@ -3,12 +3,12 @@
  * Sticker is HTML/CSS (official matter_logo.svg + qr.png + pin).
  */
 (function (global) {
-  const LABELS = { share: "Share", edit: "Edit", delete: "Delete" };
-
-  /** Match QR width on sticker (viewBox 338.667 × 72.644). */
-  const MATTER_STICKER_QR = 220;
-  const MATTER_LOGO_WIDTH = MATTER_STICKER_QR;
-  const MATTER_LOGO_HEIGHT = Math.round(MATTER_STICKER_QR * (72.644 / 338.667));
+  function actionLabel(key, fallback) {
+    const i18n = global.RemattersI18n;
+    return i18n && typeof i18n.t === "function"
+      ? i18n.t("action." + key)
+      : fallback;
+  }
 
   function hasMtPayload(code) {
     const q = String(code.qr_payload || "").trim();
@@ -28,7 +28,7 @@
   function matterBrandHtml(opts) {
     const assetsPrefix = opts.assetsPrefix || "/assets";
     return `<div class="matter-sticker-brand" aria-label="matter">
-      <img class="matter-sticker-logo" src="${assetsPrefix}/matter_logo.svg" alt="" width="${MATTER_LOGO_WIDTH}" height="${MATTER_LOGO_HEIGHT}" decoding="async" />
+      <img class="matter-sticker-logo" src="${assetsPrefix}/matter_logo.svg" alt="" decoding="async" />
     </div>`;
   }
 
@@ -37,7 +37,7 @@
     const hasMt = hasMtPayload(code);
     if (hasMt) {
       return `<div class="matter-sticker-qr-slot">
-        <img class="matter-sticker-qr" src="${apiPrefix}/codes/${code.id}/qr.png" alt="" width="220" height="220" loading="lazy" decoding="async" />
+        <img class="matter-sticker-qr" src="${apiPrefix}/codes/${code.id}/qr.png" alt="" loading="lazy" decoding="async" />
       </div>`;
     }
     return `<div class="matter-sticker-qr-slot" aria-hidden="true">
@@ -87,9 +87,9 @@
       global.RemattersVaultShareUi?.cardIconButtonsHtml({
         iconsHref,
         showShare: true,
-        shareLabel: LABELS.share,
-        editLabel: LABELS.edit,
-        deleteLabel: LABELS.delete,
+        shareLabel: actionLabel("share", "Share"),
+        editLabel: actionLabel("edit", "Edit"),
+        deleteLabel: actionLabel("delete", "Delete"),
       }) || "";
 
     return `
@@ -127,11 +127,15 @@
 
   function categoryNameDefault(vault, categoryId) {
     const c = vault.categories.find((x) => x.id === categoryId);
-    return c ? c.name : "Uncategorized";
+    const none =
+      global.RemattersI18n?.t?.("categories.none") ?? "Uncategorized";
+    return c ? c.name : none;
   }
 
   function fillCategorySelect(selectEl, vault) {
-    selectEl.innerHTML = `<option value="">No category</option>`;
+    const none =
+      global.RemattersI18n?.t?.("code.category_none") ?? "No category";
+    selectEl.innerHTML = `<option value="">${none}</option>`;
     for (const cat of vault.categories) {
       const opt = document.createElement("option");
       opt.value = cat.id;
@@ -141,7 +145,7 @@
   }
 
   global.RemattersVaultCards = {
-    LABELS,
+    actionLabel,
     hasMtPayload,
     displayManual,
     buildCodeCardHtml,

@@ -51,12 +51,35 @@
     });
   }
 
+  function clearMenuPosition(menu) {
+    menu.classList.remove("theme-dropdown-menu--open");
+    menu.style.position = "";
+    menu.style.top = "";
+    menu.style.left = "";
+    menu.style.right = "";
+    menu.style.minWidth = "";
+    menu.style.zIndex = "";
+  }
+
+  function positionMenu(menu, trigger) {
+    var rect = trigger.getBoundingClientRect();
+    var gap = 6;
+    menu.classList.add("theme-dropdown-menu--open");
+    menu.style.position = "fixed";
+    menu.style.top = rect.bottom + gap + "px";
+    menu.style.right = Math.max(8, window.innerWidth - rect.right) + "px";
+    menu.style.left = "auto";
+    menu.style.minWidth = Math.max(rect.width, 152) + "px";
+    menu.style.zIndex = "1000";
+  }
+
   function closeAllDropdowns() {
     document.querySelectorAll("[data-theme-dropdown]").forEach(function (root) {
       var menu = root.querySelector(".theme-dropdown-menu");
       var trigger = root.querySelector(".theme-dropdown-trigger");
       if (!menu || !trigger) return;
       menu.hidden = true;
+      clearMenuPosition(menu);
       trigger.setAttribute("aria-expanded", "false");
     });
   }
@@ -70,6 +93,7 @@
     if (open) {
       menu.hidden = false;
       trigger.setAttribute("aria-expanded", "true");
+      positionMenu(menu, trigger);
     }
   }
 
@@ -90,6 +114,12 @@
       });
     });
 
+    document.querySelectorAll(".theme-dropdown-menu").forEach(function (menu) {
+      menu.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+    });
+
     document.addEventListener("click", function () {
       closeAllDropdowns();
     });
@@ -97,6 +127,15 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") closeAllDropdowns();
     });
+
+    window.addEventListener("resize", closeAllDropdowns);
+    window.addEventListener(
+      "scroll",
+      function () {
+        closeAllDropdowns();
+      },
+      true
+    );
   }
 
   var mq = window.matchMedia("(prefers-color-scheme: dark)");

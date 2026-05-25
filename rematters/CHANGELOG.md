@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.20 (2026-05-26)
+
+- Compact header: remove subtitle under logo
+- Matter sticker: logo width locked to QR slot (CSS + shared vault-cards)
+- Theme dropdown: fixed popover (no header layout shift)
+- i18n: shared `brand/js/i18n.js`, theme label translations in locale files
+
 ## 0.1.19 (2026-05-26)
 
 - Matter sticker cards: tighter layout (logo/QR/pin same width), 16px corner radius

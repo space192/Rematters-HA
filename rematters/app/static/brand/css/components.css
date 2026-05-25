@@ -246,10 +246,8 @@ a:hover {
 }
 
 .theme-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 120;
+  position: fixed;
+  z-index: 1000;
   min-width: 9.5rem;
   margin: 0;
   padding: 0.35rem;
@@ -258,6 +256,10 @@ a:hover {
   border: 1px solid var(--rm-border);
   border-radius: var(--rm-radius-md);
   box-shadow: var(--rm-shadow-lg);
+}
+
+.theme-dropdown-menu--open {
+  /* top/right set in theme.js from trigger getBoundingClientRect */
 }
 
 .theme-dropdown-menu[hidden] {
@@ -301,6 +303,42 @@ a:hover {
   width: 1.1rem;
   height: 1.1rem;
   flex-shrink: 0;
+}
+
+/* Locale dropdown (HA ingress + web nav / app header) */
+.locale-dropdown {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.locale-select {
+  min-width: 8.5rem;
+  max-width: 11rem;
+  height: 2.25rem;
+  padding: 0 2rem 0 0.65rem;
+  border: 1px solid var(--rm-border);
+  border-radius: var(--rm-radius-md);
+  background: var(--rm-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")
+    no-repeat right 0.45rem center / 0.85rem;
+  color: var(--rm-text);
+  font-size: var(--rm-text-sm);
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: var(--rm-shadow-sm);
+}
+
+.locale-select:hover {
+  border-color: var(--rm-border-silver);
+  background-color: var(--rm-accent-soft);
+}
+
+.locale-select:focus-visible {
+  outline: 2px solid var(--rm-accent);
+  outline-offset: 2px;
 }
 
 .sr-only {
