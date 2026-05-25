@@ -47,10 +47,19 @@ class MatterCode(BaseModel):
     updated_at: str = Field(default_factory=utc_now)
 
 
+class VaultDeletions(BaseModel):
+    """Tombstones so deletes sync to Rematters Cloud and other devices."""
+
+    codes: dict[str, str] = Field(default_factory=dict)
+    categories: dict[str, str] = Field(default_factory=dict)
+
+
 class VaultMeta(BaseModel):
     version: int = 1
     exported_at: Optional[str] = None
-    addon_version: str = "0.1.16"
+    addon_version: str = "0.1.17"
+    source: Optional[str] = None
+    deletions: VaultDeletions = Field(default_factory=VaultDeletions)
 
 
 class Vault(BaseModel):

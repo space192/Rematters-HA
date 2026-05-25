@@ -25,16 +25,38 @@
       </div>
     </div>
     <div class="header-actions">
-      <div class="theme-switch" role="group" aria-label="Color theme">
-        <button type="button" data-theme-set="light" aria-pressed="false" title="Light">
-          <svg class="rm-icon" aria-hidden="true"><use href="./static/brand/icons.svg#rm-icon-sun"/></svg>
+      <div class="theme-dropdown" data-theme-dropdown>
+        <button type="button" class="theme-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" title="Color theme">
+          <span class="theme-dropdown-icons" aria-hidden="true">
+            <svg class="rm-icon theme-dropdown-current" data-theme-icon="light" hidden><use href="./static/brand/icons.svg#rm-icon-sun"/></svg>
+            <svg class="rm-icon theme-dropdown-current" data-theme-icon="dark" hidden><use href="./static/brand/icons.svg#rm-icon-moon"/></svg>
+            <svg class="rm-icon theme-dropdown-current" data-theme-icon="auto" hidden><use href="./static/brand/icons.svg#rm-icon-auto"/></svg>
+          </span>
+          <span class="theme-dropdown-chevron" aria-hidden="true">
+            <svg class="rm-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+          </span>
+          <span class="sr-only">Color theme</span>
         </button>
-        <button type="button" data-theme-set="dark" aria-pressed="false" title="Dark">
-          <svg class="rm-icon" aria-hidden="true"><use href="./static/brand/icons.svg#rm-icon-moon"/></svg>
-        </button>
-        <button type="button" data-theme-set="auto" aria-pressed="false" title="System">
-          <svg class="rm-icon" aria-hidden="true"><use href="./static/brand/icons.svg#rm-icon-auto"/></svg>
-        </button>
+        <ul class="theme-dropdown-menu" role="listbox" aria-label="Color theme" hidden>
+          <li role="presentation">
+            <button type="button" role="option" data-theme-set="light" aria-selected="false">
+              <svg class="rm-icon" aria-hidden="true"><use href="./static/brand/icons.svg#rm-icon-sun"/></svg>
+              <span>Light</span>
+            </button>
+          </li>
+          <li role="presentation">
+            <button type="button" role="option" data-theme-set="dark" aria-selected="false">
+              <svg class="rm-icon" aria-hidden="true"><use href="./static/brand/icons.svg#rm-icon-moon"/></svg>
+              <span>Dark</span>
+            </button>
+          </li>
+          <li role="presentation">
+            <button type="button" role="option" data-theme-set="auto" aria-selected="false">
+              <svg class="rm-icon" aria-hidden="true"><use href="./static/brand/icons.svg#rm-icon-auto"/></svg>
+              <span>System</span>
+            </button>
+          </li>
+        </ul>
       </div>
       <div class="locale-switch" id="locale-switch" role="group" aria-label="Language">
         <button type="button" class="locale-btn is-active" data-locale="en" aria-label="English" aria-pressed="true" title="English">

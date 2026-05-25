@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
 from typing import Any, Optional
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -14,7 +13,7 @@ _LOGGER = logging.getLogger("rematters.cloud")
 
 OPTIONS_PATH = "/data/options.json"
 # Identifies HA sync to the cloud API (avoids Plesk/Imunify “browser signature” 403 on Python-urllib).
-ADDON_API_VERSION = "0.1.16"
+ADDON_API_VERSION = "0.1.17"
 USER_AGENT = f"Rematters-HomeAssistant/{ADDON_API_VERSION} (+https://github.com/Rematters/Rematters-HA)"
 
 
@@ -150,62 +149,7 @@ def sync_bidirectional(local_vault: dict[str, Any]) -> dict[str, Any]:
     """
     remote = pull_vault()
     cloud_vault = remote.get("vault") or remote
-    merged = _merge_vaults(local_vault, cloud_vault)
+    from vault_merge import merge_vaults
+
+    merged = merge_vaults(local_vault, cloud_vault)
     return push_vault(merged, mode="replace")
-
-
-def _merge_vaults(local: dict, incoming: dict) -> dict:
-    """Same strategy as Rematters Cloud VaultData::merge."""
-    cats: dict[str, dict] = {}
-    for cat in (local.get("categories") or []) + (incoming.get("categories") or []):
-        cid = cat.get("id")
-        if not cid:
-            continue
-        if cid not in cats:
-            cats[cid] = cat
-        else:
-            cats[cid] = _pick_newer(cats[cid], cat)
-    codes: dict[str, dict] = {}
-    for code in (local.get("codes") or []) + (incoming.get("codes") or []):
-        cid = code.get("id")
-        if not cid:
-            continue
-        if cid not in codes:
-            codes[cid] = code
-        else:
-            codes[cid] = _pick_newer(codes[cid], code)
-    out = dict(local)
-    out["categories"] = list(cats.values())
-    out["codes"] = list(codes.values())
-    meta = dict(out.get("meta") or {})
-    meta["source"] = "hybrid"
-    out["meta"] = meta
-    return out
-
-
-def _parse_ts(value: Any) -> datetime | None:
-    """Parse ISO timestamps from Cloud (…Z) or legacy HA (…+00:00)."""
-    if not value or not isinstance(value, str):
-        return None
-    s = value.strip()
-    if s.endswith("Z"):
-        s = s[:-1] + "+00:00"
-    try:
-        dt = datetime.fromisoformat(s)
-    except ValueError:
-        return None
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
-
-
-def _pick_newer(a: dict, b: dict) -> dict:
-    ta = _parse_ts(a.get("updated_at") or a.get("created_at"))
-    tb = _parse_ts(b.get("updated_at") or b.get("created_at"))
-    if ta is None and tb is None:
-        return b
-    if ta is None:
-        return b
-    if tb is None:
-        return a
-    return b if tb >= ta else a

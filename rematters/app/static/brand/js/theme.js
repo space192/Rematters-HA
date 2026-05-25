@@ -39,15 +39,63 @@
     document.querySelectorAll("[data-theme-set]").forEach(function (btn) {
       var active = btn.getAttribute("data-theme-set") === mode;
       btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-pressed", active ? "true" : "false");
+      if (btn.getAttribute("role") === "option") {
+        btn.setAttribute("aria-selected", active ? "true" : "false");
+      } else {
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+      }
     });
+    document.querySelectorAll(".theme-dropdown-current").forEach(function (icon) {
+      var show = icon.getAttribute("data-theme-icon") === mode;
+      icon.hidden = !show;
+    });
+  }
+
+  function closeAllDropdowns() {
+    document.querySelectorAll("[data-theme-dropdown]").forEach(function (root) {
+      var menu = root.querySelector(".theme-dropdown-menu");
+      var trigger = root.querySelector(".theme-dropdown-trigger");
+      if (!menu || !trigger) return;
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function toggleDropdown(root) {
+    var menu = root.querySelector(".theme-dropdown-menu");
+    var trigger = root.querySelector(".theme-dropdown-trigger");
+    if (!menu || !trigger) return;
+    var open = menu.hidden;
+    closeAllDropdowns();
+    if (open) {
+      menu.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+    }
   }
 
   function bindToggles() {
     document.querySelectorAll("[data-theme-set]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
         apply(btn.getAttribute("data-theme-set"));
+        closeAllDropdowns();
       });
+    });
+
+    document.querySelectorAll(".theme-dropdown-trigger").forEach(function (trigger) {
+      trigger.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var root = trigger.closest("[data-theme-dropdown]");
+        if (root) toggleDropdown(root);
+      });
+    });
+
+    document.addEventListener("click", function () {
+      closeAllDropdowns();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeAllDropdowns();
     });
   }
 
@@ -58,11 +106,15 @@
     }
   });
 
-  apply(getStored());
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindToggles);
-  } else {
+  function init() {
+    apply(getStored());
     bindToggles();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
 
   window.RemattersTheme = { apply: apply, get: getStored };

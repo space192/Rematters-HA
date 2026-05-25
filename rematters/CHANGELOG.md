@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.17 (2026-05-25)
+
+- Fix cloud sync: persist delete tombstones in vault meta (codes deleted on the website now disappear in HA after sync)
+- Record tombstones when deleting codes or categories in the add-on
+
 ## 0.1.16 (2026-05-25)
 
 - Sync brand icons and components.css from monorepo

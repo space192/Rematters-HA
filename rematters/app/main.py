@@ -159,7 +159,7 @@ async def lifespan(app: FastAPI):
         scheduler.shutdown(wait=False)
 
 
-app = FastAPI(title="Rematters", version="0.1.16", lifespan=lifespan)
+app = FastAPI(title="Rematters", version="0.1.17", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -253,13 +253,17 @@ async def update_category(category_id: str, body: CategoryUpdate):
 
 @app.delete("/api/categories/{category_id}")
 async def delete_category(category_id: str):
+    from vault_merge import record_deletion
+
     vault = storage.load()
     _find_category(vault, category_id)
-    vault.categories = [c for c in vault.categories if c.id != category_id]
-    for code in vault.codes:
-        if code.category_id == category_id:
-            code.category_id = None
-    storage.save(vault)
+    data = vault.model_dump(mode="json")
+    data["categories"] = [c for c in data["categories"] if c["id"] != category_id]
+    for code in data["codes"]:
+        if code.get("category_id") == category_id:
+            code["category_id"] = None
+    record_deletion(data, "categories", category_id)
+    storage.save(Vault.model_validate(data))
     return {"ok": True}
 
 
@@ -329,10 +333,14 @@ async def update_code(code_id: str, body: MatterCodeUpdate):
 
 @app.delete("/api/codes/{code_id}")
 async def delete_code(code_id: str):
+    from vault_merge import record_deletion
+
     vault = storage.load()
     _find_code(vault, code_id)
-    vault.codes = [c for c in vault.codes if c.id != code_id]
-    storage.save(vault)
+    data = vault.model_dump(mode="json")
+    data["codes"] = [c for c in data["codes"] if c["id"] != code_id]
+    record_deletion(data, "codes", code_id)
+    storage.save(Vault.model_validate(data))
     return {"ok": True}
 
 
@@ -517,7 +525,7 @@ async def index():
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.isfile(index_path):
         return FileResponse(index_path)
-    return JSONResponse({"service": "rematters", "version": "0.1.16"})
+    return JSONResponse({"service": "rematters", "version": "0.1.17"})
 
 
 if __name__ == "__main__":
