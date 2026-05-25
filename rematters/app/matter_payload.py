@@ -1,8 +1,10 @@
-"""Matter setup payload helpers (QR must use MT:… string, not hyphenated manual)."""
+"""Matter setup payload helpers (QR must use canonical MT:… string)."""
 
 from __future__ import annotations
 
 import re
+
+from matter_setup_payload import normalize_scanned_or_entered
 
 
 def manual_digits(value: str) -> str:
@@ -17,11 +19,15 @@ def format_manual11(digits: str) -> str:
 
 
 def display_manual(manual_code: str) -> str:
+    from matter_setup_payload import format_manual_display
+
     manual = (manual_code or "").strip()
     if not manual:
         return ""
     digits = manual_digits(manual)
-    return format_manual11(digits) if digits else manual
+    if digits:
+        return format_manual_display(digits)
+    return manual
 
 
 def qr_encode_payload(qr_payload: str, manual_code: str = "") -> str | None:
@@ -33,14 +39,4 @@ def qr_encode_payload(qr_payload: str, manual_code: str = "") -> str | None:
 
 
 def normalize_fields(manual_code: str, qr_payload: str) -> dict[str, str]:
-    qr = (qr_payload or "").strip()
-    manual = (manual_code or "").strip()
-    if qr and qr.upper().startswith("MT:"):
-        idx = qr.upper().find("MT:")
-        qr = qr[idx:]
-    else:
-        qr = ""
-    digits = manual_digits(manual)
-    if digits:
-        manual = format_manual11(digits)
-    return {"manual_code": manual, "qr_payload": qr}
+    return normalize_scanned_or_entered(manual_code, qr_payload)

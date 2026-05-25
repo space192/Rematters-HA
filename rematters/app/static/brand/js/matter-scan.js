@@ -2,6 +2,8 @@
  * Matter QR / manual code parsing and duplicate detection (Rematters vault).
  */
 (function (global) {
+  const Payload = global.RemattersMatterPayload;
+
   function formatManual11(digits) {
     if (digits.length !== 11) return digits;
     return `${digits.slice(0, 4)}-${digits.slice(4, 7)}-${digits.slice(7)}`;
@@ -35,12 +37,21 @@
       /* keep original */
     }
 
+    if (Payload && typeof Payload.normalizeScannedOrEntered === "function") {
+      const normalized = Payload.normalizeScannedOrEntered("", text);
+      if (normalized && (normalized.qr_payload || normalized.manual_code)) {
+        return normalized;
+      }
+      const digits = text.replace(/\D/g, "");
+      if (digits.length === 11 || digits.length === 21) {
+        const fromManual = Payload.normalizeScannedOrEntered(digits, "");
+        if (fromManual) return fromManual;
+      }
+    }
+
     const upper = text.toUpperCase();
     if (upper.startsWith("MT:")) {
-      return {
-        qr_payload: text.trim(),
-        manual_code: "",
-      };
+      return { qr_payload: text.trim(), manual_code: "" };
     }
 
     const digits = text.replace(/\D/g, "");

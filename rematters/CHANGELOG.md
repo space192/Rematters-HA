@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.18 (2026-05-25)
+
+- Matter scan/save: decode MT: QR and manual pairing codes via CHIP SetupPayload (canonical QR + derived manual code)
+- Scannable QR on cards regenerated from parsed payload (Apple Home / HA compatible)
+
 ## 0.1.17 (2026-05-25)
 
 - Fix cloud sync: persist delete tombstones in vault meta (codes deleted on the website now disappear in HA after sync)
