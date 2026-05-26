@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger("rematters.cloud")
 
 OPTIONS_PATH = "/data/options.json"
 # Identifies HA sync to the cloud API (avoids Plesk/Imunify “browser signature” 403 on Python-urllib).
-ADDON_API_VERSION = "0.1.23"
+ADDON_API_VERSION = "0.1.24"
 USER_AGENT = f"Rematters-HomeAssistant/{ADDON_API_VERSION} (+https://github.com/Rematters/Rematters-HA)"
 
 
@@ -138,7 +138,9 @@ def run_cloud_sync(storage) -> dict[str, Any]:
     vault = storage.load()
     result = sync_bidirectional(vault.model_dump(mode="json"))
     merged = result.get("vault") or result
-    storage.save(Vault.model_validate(merged))
+    from vault_merge import sanitize_vault_dict
+
+    storage.save(Vault.model_validate(sanitize_vault_dict(merged)))
     return result
 
 

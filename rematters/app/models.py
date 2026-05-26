@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import Optional
 from uuid import uuid4
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from category_icons import normalize as normalize_category_icon
 
@@ -53,11 +53,18 @@ class VaultDeletions(BaseModel):
     codes: dict[str, str] = Field(default_factory=dict)
     categories: dict[str, str] = Field(default_factory=dict)
 
+    @field_validator("codes", "categories", mode="before")
+    @classmethod
+    def _coerce_deletion_map(cls, value: object) -> dict[str, str]:
+        if isinstance(value, dict) and not isinstance(value, list):
+            return {str(k): str(v) for k, v in value.items() if k and v}
+        return {}
+
 
 class VaultMeta(BaseModel):
     version: int = 1
     exported_at: Optional[str] = None
-    addon_version: str = "0.1.23"
+    addon_version: str = "0.1.24"
     source: Optional[str] = None
     deletions: VaultDeletions = Field(default_factory=VaultDeletions)
 
@@ -66,6 +73,15 @@ class Vault(BaseModel):
     meta: VaultMeta = Field(default_factory=VaultMeta)
     categories: list[Category] = Field(default_factory=list)
     codes: list[MatterCode] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _sanitize_raw(cls, data: object) -> object:
+        if isinstance(data, dict):
+            from vault_merge import sanitize_vault_dict
+
+            return sanitize_vault_dict(data)
+        return data
 
 
 class CategoryCreate(BaseModel):

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.24 (2026-05-27)
+
+- Fix cloud sync crash when `meta.deletions.categories` (or `codes`) is stored as JSON `[]` instead of `{}`
+- Cache-bust all ingress JS (`app.js`, `vault-cards.js`, …) so Matter sticker UI loads after updates
+
 ## 0.1.23 (2026-05-26)
 
 - Matter logo width matches visible QR modules (inner quiet-zone alignment)

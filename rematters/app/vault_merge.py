@@ -37,14 +37,28 @@ def _ts_compare(a: Any, b: Any) -> int:
     return 0
 
 
+def _as_deletion_map(value: Any) -> dict[str, str]:
+    """Coerce tombstone maps; cloud/PHP may emit JSON [] instead of {}."""
+    if not isinstance(value, dict):
+        return {}
+    return {str(k): str(v) for k, v in value.items() if k and v}
+
+
 def _normalize_deletions(meta: dict) -> dict[str, dict[str, str]]:
     raw = meta.get("deletions") if isinstance(meta.get("deletions"), dict) else {}
-    codes = raw.get("codes") if isinstance(raw.get("codes"), dict) else {}
-    categories = raw.get("categories") if isinstance(raw.get("categories"), dict) else {}
     return {
-        "codes": {str(k): str(v) for k, v in codes.items() if k and v},
-        "categories": {str(k): str(v) for k, v in categories.items() if k and v},
+        "codes": _as_deletion_map(raw.get("codes")),
+        "categories": _as_deletion_map(raw.get("categories")),
     }
+
+
+def sanitize_vault_dict(raw: dict[str, Any]) -> dict[str, Any]:
+    """Normalize vault JSON before Pydantic validation (import, sync, load)."""
+    out = dict(raw)
+    meta = dict(out.get("meta") or {})
+    meta["deletions"] = _normalize_deletions(meta)
+    out["meta"] = meta
+    return out
 
 
 def record_deletion(vault: dict[str, Any], kind: str, item_id: str, *, now: str | None = None) -> None:
