@@ -1,0 +1,22 @@
+configuration:
+  gdrive_enabled:
+    name: Backup no Google Drive
+    description: Enviar backups do cofre em JSON automaticamente para o Google Drive.
+  gdrive_folder_id:
+    name: ID da pasta do Google Drive
+    description: ID da pasta de destino para os backups (crie uma pasta dedicada primeiro).
+  gdrive_client_id:
+    name: ID do cliente OAuth
+    description: ID do cliente OAuth 2.0 do Google Cloud para a API Drive.
+  gdrive_client_secret:
+    name: Segredo do cliente OAuth
+    description: Segredo do cliente OAuth 2.0 do Google Cloud.
+  gdrive_refresh_token:
+    name: Token de atualização OAuth
+    description: Token de atualização de longa duração com escopo drive.file.
+  backup_interval_hours:
+    name: Intervalo de backup (horas)
+    description: Com que frequência enviar um backup quando o Drive está ativado.
+  backup_keep_count:
+    name: Backups a manter
+    description: Número máximo de arquivos de backup mantidos no Google Drive.

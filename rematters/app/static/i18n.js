@@ -6,7 +6,7 @@
   const STORAGE_KEY = "rematters_locale";
   const LOCALE_CHOSEN_KEY = "rematters_locale_chosen";
   const DEFAULT_LOCALE = "en";
-  const SUPPORTED = ["en", "nl", "de", "fr", "es", "it"];
+  const SUPPORTED = ["en", "nl", "de", "fr", "es", "it", "pt-br", "pt"];
 
   /** Native language names for the locale dropdown. */
   const LOCALE_LABELS = {
@@ -16,6 +16,8 @@
     fr: "Français",
     es: "Español",
     it: "Italiano",
+    "pt-br": "Português (Brasil)",
+    pt: "Português (Portugal)",
   };
 
   let locale = DEFAULT_LOCALE;
