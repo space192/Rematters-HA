@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.26 (2026-05-28)
+
+- HomeKit pairing codes (`X-HM://`): setup URI, quartile QR, official label card (SVG)
+- Z-Wave SmartStart: 90-digit QR string, DSK/PIN fields, label and QR export
+- Protocol-aware vault UI, duplicate scan detection, and sync for HomeKit/Z-Wave payloads
+- README: link to [Rematters-Docker](https://github.com/Rematters/Rematters-Docker) self-host variant
+
 ## 0.1.25 (2026-05-27)
 
 - Portuguese (Brazil) and Portuguese (Portugal) UI translations (thanks @mzspicoli)
