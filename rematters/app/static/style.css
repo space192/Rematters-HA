@@ -441,6 +441,88 @@
   text-align: center;
 }
 
+.homekit-sticker {
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.homekit-sticker-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.homekit-sticker--empty {
+  padding: var(--rm-space-4);
+  text-align: center;
+}
+
+.homekit-label-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.code-card.homekit-sticker-card,
+.code-card.zwave-sticker-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.zwave-sticker {
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.zwave-sticker-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.zwave-sticker--empty,
+.zwave-sticker--dsk-only {
+  padding: var(--rm-space-4);
+  text-align: center;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--rm-border, #e2e8f0);
+}
+
+.zwave-sticker-brand {
+  font-weight: 700;
+  color: #0b1f3a;
+  margin: 0 0 0.5rem;
+}
+
+.zwave-sticker-pin {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+  margin: 0 0 0.35rem;
+}
+
+.zwave-sticker-dsk {
+  font-family: ui-monospace, monospace;
+  font-size: 0.65rem;
+  line-height: 1.35;
+  word-break: break-all;
+  margin: 0;
+  color: var(--rm-text-muted);
+}
+
+.zwave-label-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+  margin: 0 auto;
+}
+
 .code-card-caption {
   margin: 0.35rem 0 0;
   width: 100%;

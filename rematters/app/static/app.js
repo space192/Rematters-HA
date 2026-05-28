@@ -113,7 +113,14 @@ function renderCodes() {
   const Cards = window.RemattersVaultCards;
   for (const code of codes) {
     const card = document.createElement("article");
-    card.className = "code-card matter-sticker-card";
+    const proto = Cards?.codeProtocol?.(code) || "matter";
+    card.className =
+      "code-card " +
+      (proto === "homekit"
+        ? "homekit-sticker-card"
+        : proto === "zwave"
+          ? "zwave-sticker-card"
+          : "matter-sticker-card");
     if (Cards) {
       card.innerHTML = Cards.buildCodeCardHtml(code, {
         escapeHtml,
@@ -160,8 +167,36 @@ function escapeHtml(s) {
   return d.innerHTML;
 }
 
+function fillHomeKitCategorySelect() {
+  const sel = document.getElementById("code-homekit-category");
+  const HK = window.RemattersHomeKitPayload;
+  if (!sel || !HK) return;
+  sel.innerHTML = "";
+  for (const key of HK.CATEGORY_KEYS) {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = key;
+    sel.appendChild(opt);
+  }
+}
+
+function syncCodeTypeFields() {
+  const type = document.getElementById("code-type")?.value || "matter";
+  document.getElementById("code-fields-matter")?.classList.toggle("hidden", type !== "matter");
+  document.getElementById("code-fields-homekit")?.classList.toggle("hidden", type !== "homekit");
+  document.getElementById("code-fields-zwave")?.classList.toggle("hidden", type !== "zwave");
+  const scanBtn = document.getElementById("btn-scan-in-form");
+  if (scanBtn) scanBtn.disabled = type !== "matter";
+}
+
 function openCodeDialog(code = null) {
   const dlg = document.getElementById("code-dialog");
+  const proto =
+    code && window.RemattersVaultCards
+      ? window.RemattersVaultCards.codeProtocol(code)
+      : "matter";
+  document.getElementById("code-type").value = code?.code_type || proto;
+  syncCodeTypeFields();
   document.getElementById("code-dialog-title").textContent = code
     ? t("code.dialog_edit")
     : t("code.dialog_new");
@@ -171,6 +206,16 @@ function openCodeDialog(code = null) {
   document.getElementById("code-category").value = code?.category_id || "";
   document.getElementById("code-manual").value = code?.manual_code || "";
   document.getElementById("code-qr").value = code?.qr_payload || "";
+  document.getElementById("code-homekit-pairing").value = code?.manual_code || "";
+  document.getElementById("code-homekit-setup-id").value = code?.setup_id || "";
+  document.getElementById("code-homekit-category").value =
+    code?.homekit_category || "other";
+  document.getElementById("code-homekit-uri").value =
+    proto === "homekit" ? code?.qr_payload || "" : "";
+  document.getElementById("code-zwave-dsk").value =
+    proto === "zwave" ? code?.manual_code || "" : "";
+  document.getElementById("code-zwave-qr").value =
+    proto === "zwave" ? code?.qr_payload || "" : "";
   document.getElementById("code-notes").value = code?.notes || "";
   document.getElementById("code-ha-entity").value = code?.ha_link?.entity_id || "";
   document.getElementById("code-ha-attr").value = code?.ha_link?.attribute || "";
@@ -198,18 +243,67 @@ const SCAN_LIB_URL =
 async function saveCode(e) {
   e.preventDefault();
   const id = document.getElementById("code-id").value;
-  const body = {
-    name: document.getElementById("code-name").value.trim(),
-    device_type: document.getElementById("code-device-type").value.trim(),
-    category_id: document.getElementById("code-category").value || null,
-    manual_code: document.getElementById("code-manual").value.trim(),
-    qr_payload: document.getElementById("code-qr").value.trim(),
-    notes: document.getElementById("code-notes").value.trim(),
-    ha_link: {
-      entity_id: document.getElementById("code-ha-entity").value.trim() || null,
-      attribute: document.getElementById("code-ha-attr").value.trim() || null,
-    },
-  };
+  const codeType = document.getElementById("code-type").value || "matter";
+  let body;
+  if (codeType === "homekit" && window.RemattersHomeKitPayload) {
+    const n = window.RemattersHomeKitPayload.normalizeFields(
+      document.getElementById("code-homekit-pairing").value.trim(),
+      document.getElementById("code-homekit-uri").value.trim(),
+      {
+        setup_id: document.getElementById("code-homekit-setup-id").value.trim(),
+        homekit_category: document.getElementById("code-homekit-category").value,
+      }
+    );
+    body = {
+      name: document.getElementById("code-name").value.trim(),
+      code_type: "homekit",
+      device_type: document.getElementById("code-device-type").value.trim(),
+      category_id: document.getElementById("code-category").value || null,
+      manual_code: n.manual_code,
+      qr_payload: n.qr_payload,
+      setup_id: n.setup_id,
+      homekit_category: n.homekit_category,
+      homekit_flag: n.homekit_flag,
+      notes: document.getElementById("code-notes").value.trim(),
+      ha_link: {
+        entity_id: document.getElementById("code-ha-entity").value.trim() || null,
+        attribute: document.getElementById("code-ha-attr").value.trim() || null,
+      },
+    };
+  } else if (codeType === "zwave" && window.RemattersZWavePayload) {
+    const n = window.RemattersZWavePayload.normalizeFields(
+      document.getElementById("code-zwave-dsk").value.trim(),
+      document.getElementById("code-zwave-qr").value.trim()
+    );
+    body = {
+      name: document.getElementById("code-name").value.trim(),
+      code_type: "zwave",
+      device_type: document.getElementById("code-device-type").value.trim(),
+      category_id: document.getElementById("code-category").value || null,
+      manual_code: n.manual_code,
+      qr_payload: n.qr_payload,
+      zwave_pin: n.zwave_pin,
+      notes: document.getElementById("code-notes").value.trim(),
+      ha_link: {
+        entity_id: document.getElementById("code-ha-entity").value.trim() || null,
+        attribute: document.getElementById("code-ha-attr").value.trim() || null,
+      },
+    };
+  } else {
+    body = {
+      name: document.getElementById("code-name").value.trim(),
+      code_type: "matter",
+      device_type: document.getElementById("code-device-type").value.trim(),
+      category_id: document.getElementById("code-category").value || null,
+      manual_code: document.getElementById("code-manual").value.trim(),
+      qr_payload: document.getElementById("code-qr").value.trim(),
+      notes: document.getElementById("code-notes").value.trim(),
+      ha_link: {
+        entity_id: document.getElementById("code-ha-entity").value.trim() || null,
+        attribute: document.getElementById("code-ha-attr").value.trim() || null,
+      },
+    };
+  }
   const dup = window.RemattersScan?.findDuplicate(vault.codes, body, id || null);
   if (dup) {
     const msg = t("scan.duplicate", { name: dup.name || t("scan.unnamed") });
@@ -289,6 +383,8 @@ async function loadBackupStatus() {
 function bindUi() {
   window.RemattersCategoryColor?.bind();
   ensureCategoryIconPicker();
+  fillHomeKitCategorySelect();
+  document.getElementById("code-type").onchange = syncCodeTypeFields;
   document.getElementById("btn-add-code").onclick = () => openCodeDialog();
   document.getElementById("btn-add-category").onclick = () => openCategoryDialog();
   document.getElementById("code-form").onsubmit = saveCode;

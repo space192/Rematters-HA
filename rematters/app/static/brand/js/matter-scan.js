@@ -72,12 +72,72 @@
    * @param {string|null} [excludeId]
    */
   function findDuplicate(codes, candidate, excludeId = null) {
+    const HK = global.RemattersHomeKitPayload;
+    const ZW = global.RemattersZWavePayload;
+    let proto = String(candidate.code_type || "").toLowerCase();
+    if (proto !== "zwave" && proto !== "homekit") {
+      if (ZW?.hasScannableQr?.(candidate.qr_payload)) proto = "zwave";
+      else if (
+        String(candidate.qr_payload || "")
+          .toUpperCase()
+          .startsWith("X-HM://")
+      )
+        proto = "homekit";
+      else proto = "matter";
+    }
+
+    if (proto === "zwave" && ZW) {
+      const dskKey = ZW.formatDsk(candidate.manual_code).replace(/\D/g, "");
+      const qrKey = ZW.extractQrString
+        ? ZW.extractQrString(candidate.qr_payload)
+        : "";
+      if (dskKey.length !== 40 && !qrKey) return null;
+      for (const code of codes) {
+        if (excludeId && code.id === excludeId) continue;
+        if (String(code.code_type || "").toLowerCase() !== "zwave" &&
+            !ZW.hasScannableQr?.(code.qr_payload)) continue;
+        const exDsk = ZW.formatDsk(code.manual_code).replace(/\D/g, "");
+        if (dskKey && exDsk === dskKey) return code;
+        const exQr = ZW.extractQrString
+          ? ZW.extractQrString(code.qr_payload)
+          : "";
+        if (qrKey && exQr === qrKey) return code;
+      }
+      return null;
+    }
+
+    if (proto === "homekit" && HK) {
+      const pinKey = HK.pairingDigits(candidate.manual_code);
+      const parsed = HK.parseSetupUri
+        ? HK.parseSetupUri(candidate.qr_payload)
+        : null;
+      const qrKey = parsed ? parsed.uri.toUpperCase() : "";
+      if (!pinKey && !qrKey) return null;
+
+      for (const code of codes) {
+        if (excludeId && code.id === excludeId) continue;
+        if (HK.codeProtocol(code) !== "homekit") continue;
+        if (pinKey && HK.pairingDigits(code.manual_code) === pinKey) {
+          return code;
+        }
+        const exParsed = HK.parseSetupUri
+          ? HK.parseSetupUri(code.qr_payload)
+          : null;
+        if (qrKey && exParsed && exParsed.uri.toUpperCase() === qrKey) {
+          return code;
+        }
+      }
+      return null;
+    }
+
     const manKey = normalizeManualDigits(candidate.manual_code);
     const qrKey = normalizeQr(candidate.qr_payload);
     if (!manKey && !qrKey) return null;
 
     for (const code of codes) {
       if (excludeId && code.id === excludeId) continue;
+      if (HK && HK.codeProtocol && HK.codeProtocol(code) === "homekit") continue;
+      if (ZW && ZW.hasScannableQr?.(code.qr_payload)) continue;
       if (manKey && normalizeManualDigits(code.manual_code) === manKey) {
         return code;
       }

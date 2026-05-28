@@ -25,6 +25,7 @@
 |---|---|
 | **Website** | [rematters.casa](https://rematters.casa) |
 | **Viewer** | [viewer.rematters.casa](https://viewer.rematters.casa) · [Rematters-Webviewer](https://github.com/Rematters/Rematters-Webviewer) |
+| **Docker (self-host)** | [Rematters-Docker](https://github.com/Rematters/Rematters-Docker) |
 
 ## Add this repository in Home Assistant
 

@@ -29,8 +29,23 @@ from models import (
 )
 from cloud_sync import cloud_api_raw, cloud_configured, load_cloud_options, run_cloud_sync, _api_request
 from matter_label import label_png_bytes
-from matter_qr_image import qr_png_bytes
+from matter_qr_image import qr_png_bytes as matter_qr_png_bytes
 from matter_payload import normalize_fields, qr_encode_payload
+from homekit_label import card_svg_for_code
+from homekit_qr_image import qr_png_bytes as homekit_qr_png_bytes
+from homekit_payload import (
+    normalize_fields as normalize_homekit_fields,
+    pairing_digits as homekit_pairing_digits,
+    qr_encode_payload as homekit_qr_encode,
+)
+from zwave_label import card_svg_for_code as zwave_card_svg_for_code
+from zwave_qr_image import qr_png_bytes as zwave_qr_png_bytes
+from zwave_payload import (
+    extract_qr_string as zwave_extract_qr,
+    normalize_fields as normalize_zwave_fields,
+    qr_encode_payload as zwave_qr_encode,
+    _digits_only as zwave_digits_only,
+)
 from models import Vault
 from storage import VaultStorage
 
@@ -87,15 +102,69 @@ def _normalize_qr_key(value: str) -> str:
     return s if s.startswith("MT:") else ""
 
 
+def _normalize_homekit_qr_key(value: str) -> str:
+    s = (value or "").strip().upper()
+    return s if s.startswith("X-HM://") else ""
+
+
+def _code_protocol(candidate: dict | MatterCode) -> str:
+    if isinstance(candidate, MatterCode):
+        data = candidate.model_dump(mode="json")
+    else:
+        data = candidate
+    ct = str(data.get("code_type") or "matter").strip().lower()
+    if ct in ("homekit", "zwave"):
+        return ct
+    qr = str(data.get("qr_payload") or "").strip().upper()
+    if qr.startswith("X-HM://"):
+        return "homekit"
+    if zwave_extract_qr(str(data.get("qr_payload") or "")):
+        return "zwave"
+    return "matter"
+
+
 def _find_duplicate_code(
     vault: Vault, candidate: dict, exclude_id: str | None = None
 ) -> MatterCode | None:
+    proto = _code_protocol(candidate)
+    if proto == "zwave":
+        dsk_key = zwave_digits_only(str(candidate.get("manual_code", "")))
+        qr_key = zwave_extract_qr(str(candidate.get("qr_payload", "")))
+        if len(dsk_key) != 40 and not qr_key:
+            return None
+        for existing in vault.codes:
+            if exclude_id and existing.id == exclude_id:
+                continue
+            if _code_protocol(existing) != "zwave":
+                continue
+            if dsk_key and dsk_key == zwave_digits_only(existing.manual_code):
+                return existing
+            if qr_key and qr_key == zwave_extract_qr(existing.qr_payload):
+                return existing
+        return None
+    if proto == "homekit":
+        pin = homekit_pairing_digits(str(candidate.get("manual_code", "")))
+        qr_key = _normalize_homekit_qr_key(str(candidate.get("qr_payload", "")))
+        if not pin and not qr_key:
+            return None
+        for existing in vault.codes:
+            if exclude_id and existing.id == exclude_id:
+                continue
+            if _code_protocol(existing) != "homekit":
+                continue
+            if pin and pin == homekit_pairing_digits(existing.manual_code):
+                return existing
+            if qr_key and qr_key == _normalize_homekit_qr_key(existing.qr_payload):
+                return existing
+        return None
     man_key = _normalize_manual_key(str(candidate.get("manual_code", "")))
     qr_key = _normalize_qr_key(str(candidate.get("qr_payload", "")))
     if not man_key and not qr_key:
         return None
     for existing in vault.codes:
         if exclude_id and existing.id == exclude_id:
+            continue
+        if _code_protocol(existing) not in ("matter",):
             continue
         if man_key and man_key == _normalize_manual_key(existing.manual_code):
             return existing
@@ -292,7 +361,30 @@ async def list_codes(category_id: Optional[str] = Query(None)):
     return codes
 
 
-def _apply_matter_fields(code: MatterCode) -> None:
+def _apply_code_fields(code: MatterCode) -> None:
+    if _code_protocol(code) == "zwave":
+        code.code_type = "zwave"
+        n = normalize_zwave_fields(code.manual_code or "", code.qr_payload or "")
+        code.manual_code = str(n["manual_code"])
+        code.qr_payload = str(n["qr_payload"])
+        code.zwave_pin = str(n.get("zwave_pin", ""))
+        return
+    if _code_protocol(code) == "homekit":
+        code.code_type = "homekit"
+        n = normalize_homekit_fields(
+            code.manual_code or "",
+            code.qr_payload or "",
+            homekit_category=code.homekit_category or "other",
+            homekit_flag=int(code.homekit_flag or 2),
+            setup_id=code.setup_id or "",
+        )
+        code.manual_code = str(n["manual_code"])
+        code.qr_payload = str(n["qr_payload"])
+        code.setup_id = str(n.get("setup_id", ""))
+        code.homekit_category = str(n.get("homekit_category", "other"))
+        code.homekit_flag = int(n.get("homekit_flag", 2))
+        return
+    code.code_type = "matter"
     normalized = normalize_fields(code.manual_code or "", code.qr_payload or "")
     code.manual_code = normalized["manual_code"]
     code.qr_payload = normalized["qr_payload"]
@@ -304,7 +396,7 @@ async def create_code(body: MatterCodeCreate):
     data = body.model_dump()
     ha_link = data.pop("ha_link", None)
     code = MatterCode(**data)
-    _apply_matter_fields(code)
+    _apply_code_fields(code)
     if ha_link:
         code.ha_link = ha_link
     if code.category_id:
@@ -333,7 +425,7 @@ async def update_code(code_id: str, body: MatterCodeUpdate):
     if ha_link is not None:
         code.ha_link = ha_link
     if "manual_code" in updates or "qr_payload" in updates:
-        _apply_matter_fields(code)
+        _apply_code_fields(code)
     code.updated_at = utc_now()
     dup = _find_duplicate_code(vault, code.model_dump(mode="json"), exclude_id=code_id)
     if dup:
@@ -362,11 +454,28 @@ async def delete_code(code_id: str):
 async def code_qr_png(code_id: str):
     vault = storage.load()
     code = _find_code(vault, code_id)
+    proto = _code_protocol(code)
+    if proto == "homekit":
+        payload = homekit_qr_encode(code.qr_payload or "", code.manual_code or "")
+        if not payload:
+            raise HTTPException(400, "No HomeKit setup URI stored")
+        return StreamingResponse(
+            io.BytesIO(homekit_qr_png_bytes(payload)),
+            media_type="image/png",
+        )
+    if proto == "zwave":
+        payload = zwave_qr_encode(code.qr_payload or "")
+        if not payload:
+            raise HTTPException(400, "No Z-Wave SmartStart QR string stored")
+        return StreamingResponse(
+            io.BytesIO(zwave_qr_png_bytes(payload)),
+            media_type="image/png",
+        )
     payload = qr_encode_payload(code.qr_payload or "", code.manual_code or "")
     if not payload:
         raise HTTPException(400, "No MT: QR payload stored")
     return StreamingResponse(
-        io.BytesIO(qr_png_bytes(payload)),
+        io.BytesIO(matter_qr_png_bytes(payload)),
         media_type="image/png",
     )
 
@@ -375,6 +484,9 @@ async def code_qr_png(code_id: str):
 async def code_label_png(code_id: str):
     vault = storage.load()
     code = _find_code(vault, code_id)
+    proto = _code_protocol(code)
+    if proto in ("homekit", "zwave"):
+        raise HTTPException(400, "Use card.svg for HomeKit or Z-Wave labels")
     try:
         png = label_png_bytes(code.manual_code or "", code.qr_payload or "")
     except ValueError as e:
@@ -382,6 +494,23 @@ async def code_label_png(code_id: str):
     if not png:
         raise HTTPException(404, "No Matter code to render")
     return StreamingResponse(io.BytesIO(png), media_type="image/png")
+
+
+@app.get("/api/codes/{code_id}/card.svg")
+async def code_card_svg(code_id: str):
+    vault = storage.load()
+    code = _find_code(vault, code_id)
+    proto = _code_protocol(code)
+    if proto not in ("homekit", "zwave"):
+        raise HTTPException(400, "card.svg is only for HomeKit or Z-Wave codes")
+    try:
+        if proto == "homekit":
+            svg = card_svg_for_code(code.model_dump(mode="json"))
+        else:
+            svg = zwave_card_svg_for_code(code.model_dump(mode="json"))
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    return Response(content=svg, media_type="image/svg+xml; charset=utf-8")
 
 
 # --- Home Assistant ---
@@ -411,8 +540,17 @@ async def sync_code_from_ha(code_id: str):
     if value is None:
         raise HTTPException(404, "Could not read attribute from Home Assistant")
     if isinstance(value, str):
-        if value.upper().startswith("MT:"):
+        upper = value.upper()
+        if upper.startswith("MT:"):
             code.qr_payload = value
+        elif upper.startswith("X-HM://"):
+            code.qr_payload = value
+            code.code_type = "homekit"
+            _apply_code_fields(code)
+        elif zwave_extract_qr(value):
+            code.qr_payload = value
+            code.code_type = "zwave"
+            _apply_code_fields(code)
         else:
             code.manual_code = value
     code.updated_at = utc_now()
@@ -478,6 +616,22 @@ async def code_card_png(code_id: str):
             )
         except RuntimeError:
             pass
+    proto = _code_protocol(code)
+    if proto in ("homekit", "zwave"):
+        try:
+            if proto == "homekit":
+                svg = card_svg_for_code(code.model_dump(mode="json"))
+                fname = "rematters-homekit.svg"
+            else:
+                svg = zwave_card_svg_for_code(code.model_dump(mode="json"))
+                fname = "rematters-zwave.svg"
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from e
+        return Response(
+            content=svg,
+            media_type="image/svg+xml; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+        )
     try:
         png = label_png_bytes(code.manual_code or "", code.qr_payload or "")
     except ValueError as e:

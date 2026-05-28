@@ -1,6 +1,5 @@
 /**
- * Shared Matter sticker cards (Rematters Cloud + HA Ingress).
- * Sticker is HTML/CSS (official matter_logo.svg + qr.png + pin).
+ * Shared vault cards (Matter + HomeKit stickers) for Cloud + HA Ingress.
  */
 (function (global) {
   function actionLabel(key, fallback) {
@@ -10,12 +9,31 @@
       : fallback;
   }
 
+  function codeProtocol(code) {
+    const ct = String(code?.code_type || "").toLowerCase();
+    if (ct === "zwave" || ct === "homekit") return ct;
+    const ZW = global.RemattersZWavePayload;
+    if (ZW?.hasScannableQr?.(code?.qr_payload)) return "zwave";
+    const q = String(code.qr_payload || "").trim();
+    if (q.toUpperCase().startsWith("X-HM://")) return "homekit";
+    if (q.toUpperCase().startsWith("MT:")) return "matter";
+    return "matter";
+  }
+
   function hasMtPayload(code) {
     const q = String(code.qr_payload || "").trim();
     return q.toUpperCase().startsWith("MT:");
   }
 
   function displayManual(code) {
+    if (codeProtocol(code) === "homekit") {
+      const HK = global.RemattersHomeKitPayload;
+      if (HK) return HK.formatPairingDisplay(code.manual_code);
+    }
+    if (codeProtocol(code) === "zwave") {
+      const ZW = global.RemattersZWavePayload;
+      if (ZW) return ZW.formatDskDisplay(code.manual_code);
+    }
     const manual = String(code.manual_code || "").trim();
     if (!manual) return "";
     const digits = manual.replace(/\D/g, "");
@@ -50,7 +68,7 @@
     </div>`;
   }
 
-  function buildStickerHtml(code, opts) {
+  function buildMatterStickerHtml(code, opts) {
     const escapeHtml = opts.escapeHtml;
     const hasMt = hasMtPayload(code);
     const pin = displayManual(code);
@@ -80,20 +98,82 @@
       </div>`;
   }
 
+  function buildHomeKitStickerHtml(code, opts) {
+    const apiPrefix = opts.qrApiPrefix || "/api";
+    const HK = global.RemattersHomeKitPayload;
+    const hasQr =
+      HK && typeof HK.hasScannableQr === "function"
+        ? HK.hasScannableQr(code.qr_payload)
+        : String(code.qr_payload || "")
+            .toUpperCase()
+            .startsWith("X-HM://");
+    if (!hasQr) {
+      return `<div class="homekit-sticker homekit-sticker--empty">
+        <p class="matter-sticker-empty-msg">No HomeKit code yet</p>
+      </div>`;
+    }
+    return `<div class="homekit-sticker">
+      <img class="homekit-sticker-img" src="${apiPrefix}/codes/${code.id}/card.svg" alt="" loading="lazy" decoding="async" />
+    </div>`;
+  }
+
+  function buildZWaveStickerHtml(code, opts) {
+    const apiPrefix = opts.qrApiPrefix || "/api";
+    const ZW = global.RemattersZWavePayload;
+    const hasQr = ZW?.hasScannableQr?.(code.qr_payload);
+    if (!hasQr) {
+      const dsk = displayManual(code);
+      if (!dsk) {
+        return `<div class="zwave-sticker zwave-sticker--empty">
+          <p class="matter-sticker-empty-msg">No Z-Wave code yet</p>
+        </div>`;
+      }
+      return `<div class="zwave-sticker zwave-sticker--dsk-only">
+        <p class="zwave-sticker-brand">Z-Wave</p>
+        <p class="zwave-sticker-pin">PIN ${opts.escapeHtml(ZW?.pinFromDsk?.(dsk) || "")}</p>
+        <p class="zwave-sticker-dsk">${opts.escapeHtml(dsk)}</p>
+      </div>`;
+    }
+    return `<div class="zwave-sticker">
+      <img class="zwave-sticker-img" src="${apiPrefix}/codes/${code.id}/card.svg" alt="" loading="lazy" decoding="async" />
+    </div>`;
+  }
+
+  function buildStickerHtml(code, opts) {
+    const proto = codeProtocol(code);
+    if (proto === "homekit") return buildHomeKitStickerHtml(code, opts);
+    if (proto === "zwave") return buildZWaveStickerHtml(code, opts);
+    return buildMatterStickerHtml(code, opts);
+  }
+
   function buildCodeCardHtml(code, opts) {
     const escapeHtml = opts.escapeHtml;
     const iconsHref = opts.iconsHref || "/brand/icons.svg";
+    const proto = codeProtocol(code);
     const icons =
       global.RemattersVaultShareUi?.cardIconButtonsHtml({
         iconsHref,
-        showShare: true,
+        showShare: proto === "matter",
         shareLabel: actionLabel("share", "Share"),
         editLabel: actionLabel("edit", "Edit"),
         deleteLabel: actionLabel("delete", "Delete"),
       }) || "";
 
+    const wrapClass =
+      proto === "homekit"
+        ? "homekit-label-wrap"
+        : proto === "zwave"
+          ? "zwave-label-wrap"
+          : "matter-label-wrap";
+    const cardClass =
+      proto === "homekit"
+        ? "code-card homekit-sticker-card"
+        : proto === "zwave"
+          ? "code-card zwave-sticker-card"
+          : "code-card matter-sticker-card";
+
     return `
-      <div class="matter-label-wrap">
+      <div class="${wrapClass}">
         <div class="card-actions-overlay">${icons}</div>
         ${buildStickerHtml(code, opts)}
       </div>
@@ -120,7 +200,7 @@
     if (delBtn && handlers.onDelete) {
       delBtn.onclick = (e) => {
         e.stopPropagation();
-        handlers.onDelete(code.id);
+        handlers.onDelete(code);
       };
     }
   }
@@ -132,20 +212,21 @@
     return c ? c.name : none;
   }
 
-  function fillCategorySelect(selectEl, vault) {
+  function fillCategorySelect(sel, vault) {
     const none =
       global.RemattersI18n?.t?.("code.category_none") ?? "No category";
-    selectEl.innerHTML = `<option value="">${none}</option>`;
+    sel.innerHTML = `<option value="">${none}</option>`;
     for (const cat of vault.categories) {
       const opt = document.createElement("option");
       opt.value = cat.id;
       opt.textContent = cat.name;
-      selectEl.appendChild(opt);
+      sel.appendChild(opt);
     }
   }
 
   global.RemattersVaultCards = {
     actionLabel,
+    codeProtocol,
     hasMtPayload,
     displayManual,
     buildCodeCardHtml,

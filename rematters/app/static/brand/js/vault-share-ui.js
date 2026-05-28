@@ -76,16 +76,29 @@
       }
     }
 
-    async function downloadShareImage(codeId) {
+    async function downloadShareImage(code, codeId) {
       const base = config.apiBase || "/api";
-      const res = await fetch(`${base}/codes/${codeId}/card.png`, {
+      const proto =
+        window.RemattersVaultCards?.codeProtocol?.(code) ||
+        window.RemattersHomeKitPayload?.codeProtocol?.(code) ||
+        "matter";
+      const path =
+        proto === "homekit" || proto === "zwave"
+          ? `${base}/codes/${codeId}/card.svg`
+          : `${base}/codes/${codeId}/card.png`;
+      const res = await fetch(path, {
         credentials: config.credentials || "same-origin",
       });
       if (!res.ok) throw new Error(msg.downloadFail || "Could not generate image");
       const blob = await res.blob();
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "rematters-code.png";
+      a.download =
+        proto === "homekit"
+          ? "rematters-homekit.svg"
+          : proto === "zwave"
+            ? "rematters-zwave.svg"
+            : "rematters-code.png";
       a.click();
       URL.revokeObjectURL(a.href);
     }
@@ -105,7 +118,7 @@
     document.getElementById("share-btn-image")?.addEventListener("click", async () => {
       if (!shareDialogCode) return;
       try {
-        await downloadShareImage(shareDialogCode.id);
+        await downloadShareImage(shareDialogCode, shareDialogCode.id);
       } catch (err) {
         alert(err.message || msg.downloadFail || "Download failed");
       }

@@ -37,14 +37,27 @@ class HaLink(BaseModel):
 class MatterCode(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     name: str
+    code_type: str = "matter"  # matter | homekit | zwave
     device_type: str = ""
     category_id: Optional[str] = None
     manual_code: str = ""
     qr_payload: str = ""
+    setup_id: str = ""  # HomeKit 4-char setup ID
+    homekit_category: str = "other"
+    homekit_flag: int = 2
+    zwave_pin: str = ""  # first 5 digits of DSK (S2 PIN)
     notes: str = ""
     ha_link: HaLink = Field(default_factory=HaLink)
     created_at: str = Field(default_factory=utc_now)
     updated_at: str = Field(default_factory=utc_now)
+
+    @field_validator("code_type")
+    @classmethod
+    def _code_type(cls, value: str) -> str:
+        v = (value or "matter").strip().lower()
+        if v in ("matter", "homekit", "zwave"):
+            return v
+        return "matter"
 
 
 class VaultDeletions(BaseModel):
@@ -110,19 +123,29 @@ class CategoryUpdate(BaseModel):
 
 class MatterCodeCreate(BaseModel):
     name: str
+    code_type: str = "matter"
     device_type: str = ""
     category_id: Optional[str] = None
     manual_code: str = ""
     qr_payload: str = ""
+    setup_id: str = ""
+    homekit_category: str = "other"
+    homekit_flag: int = 2
+    zwave_pin: str = ""
     notes: str = ""
     ha_link: Optional[HaLink] = None
 
 
 class MatterCodeUpdate(BaseModel):
     name: Optional[str] = None
+    code_type: Optional[str] = None
     device_type: Optional[str] = None
     category_id: Optional[str] = None
     manual_code: Optional[str] = None
     qr_payload: Optional[str] = None
+    setup_id: Optional[str] = None
+    homekit_category: Optional[str] = None
+    homekit_flag: Optional[int] = None
+    zwave_pin: Optional[str] = None
     notes: Optional[str] = None
     ha_link: Optional[HaLink] = None
